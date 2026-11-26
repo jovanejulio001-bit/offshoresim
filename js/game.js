@@ -62,6 +62,18 @@ for(let i=0;i<12;i++){const stripe=box(.55,.025,.13,i%2?0x171c20:0xf4c02d,Math.c
 const workLights=[];[[-18,7,-18],[18,7,-18],[-18,7,18],[18,7,18],[0,34,0]].forEach((p,i)=>{const pole=cyl(.09,5,0x59636a,p[0],p[1]-2.5,p[2],0,10);const lamp=box(.65,.28,.35,0xffe6a3,p[0],p[1],p[2]);lamp.material=new THREE.MeshStandardMaterial({color:0xffe2a0,emissive:0xffbd55,emissiveIntensity:1.8});const light=new THREE.PointLight(0xffd99a,.55,22);light.position.set(p[0],p[1]-.2,p[2]);sc.add(light);workLights.push(light)});
 // Pequeno guindaste de apoio no convés.
 const craneBase=box(2.8,.6,2.8,0x39434a,16,.3,14);const craneMast=box(.5,7,.5,0xe5a91c,16,4,14);const craneArm=box(8,.35,.45,0xe5a91c,12,7.3,14);const craneCable=cyl(.035,3,0x242a30,9,5.6,14,0,8);const craneHook=cyl(.12,.35,0xc52e27,9,4,14,0,8);
+// Expansão do convés: módulos de processo, contentores, passadiços e escadas de acesso.
+const containerMat=new THREE.MeshStandardMaterial({color:0x34556a,metalness:.55,roughness:.68});
+function container(x,z,color=0x34556a){const g=new THREE.Group();g.position.set(x,.0,z);sc.add(g);const body=new THREE.Mesh(new THREE.BoxGeometry(4.8,2.7,2.6),new THREE.MeshStandardMaterial({color,metalness:.42,roughness:.72}));body.position.y=1.35;body.castShadow=body.receiveShadow=true;g.add(body);for(let i=-2;i<=2;i++){const rib=new THREE.Mesh(new THREE.BoxGeometry(.055,2.55,.08),metalMat);rib.position.set(i*.85,1.35,1.34);g.add(rib);const rib2=rib.clone();rib2.position.z=-1.34;g.add(rib2)}const roof=new THREE.Mesh(new THREE.BoxGeometry(4.9,.12,2.7),metalMat);roof.position.y=2.73;g.add(roof);box(1.1,1.9,.08,0x1c2d39,x+1.45,1.0,z+1.34);col(x-2.5,x+2.5,z-1.4,z+1.4);return g}
+container(-16,14,0x344d5b);container(-9,14,0x59616a);container(7,14,0x405b4d);
+// Módulo de geração e manifold de processo, com válvulas identificáveis.
+box(5,2.2,3.4,0x35434c,-16,1.1,8,0,1);label('GERADORES',-16,2.8,8);
+for(let i=0;i<4;i++){const v=cyl(.32,.18,0xc48a26,-17.5+i,2.35,5.8,0,12);v.rotation.x=Math.PI/2;const stem=cyl(.06,.55,0x87949b,-17.5+i,2.65,5.8,0,8);}
+// Escada industrial com patamares e corrimãos no lado leste.
+for(let i=0;i<10;i++){const step=box(2.2,.16,.42,0x77838a,18.1,i*.28+.12,3.2-i*.42);step.material=metalMat}
+rail(17,3.4,19, -1.0,1.05);
+// Passadiço elevado ligando o Doghouse ao convés de processo.
+box(7,.22,1.8,0x65737c,14,1.25,-1.2);rail(10.5,-2.1,17.5,-2.1,1.8);rail(10.5,-.3,17.5,-.3,1.8);
 // doghouse (14,-8)
 const dh=[box(8,4,.3,0x9aa396,14,2,-11,0,1),box(.3,4,6,0x9aa396,10,2,-8,0,1),box(.3,4,6,0x9aa396,18,2,-8,0,1),
  box(3,4,.3,0x9aa396,11.5,2,-5,0,1),box(3,4,.3,0x9aa396,16.5,2,-5,0,1),box(8.4,.3,6.4,0x6f786d,14,4.1,-8,0,1)];
@@ -71,8 +83,16 @@ const panelM=box(3,1.2,.8,0x222a33,14,.6,-10.4);box(2.6,.8,.1,0x00ff88,14,1.5,-1
 const scr=panelM;const dhLight=new THREE.PointLight(0xffffff,1.15,14);dhLight.position.set(14,3.4,-8);sc.add(dhLight);
 // Interior do Doghouse: consola, três monitores, cadeira e iluminação de tarefa.
 const desk=box(4.6,.18,1.1,0x26343d,14,.95,-9.3);desk.material=metalMat;
-for(let i=0;i<3;i++){const mon=box(1.05,.78,.12,0x101b24,12.55+i*1.42,2.05,-10.25);mon.material=new THREE.MeshStandardMaterial({color:0x06131c,emissive:i===1?0x063b38:0x09283c,emissiveIntensity:1.2,metalness:.25,roughness:.2});box(.98,.7,.025,0x0c453f,12.55+i*1.42,2.05,-10.17).material=new THREE.MeshBasicMaterial({color:i===1?0x1b8d72:0x176080});}
+const liveScreens=[];
+for(let i=0;i<3;i++){const mon=box(1.05,.78,.12,0x101b24,12.55+i*1.42,2.05,-10.25);mon.material=new THREE.MeshStandardMaterial({color:0x06131c,emissive:0x09283c,emissiveIntensity:1.2,metalness:.25,roughness:.2});const face=document.createElement('canvas');face.width=512;face.height=320;const fg=face.getContext('2d');fg.fillStyle='#06131c';fg.fillRect(0,0,512,320);const tex=new THREE.CanvasTexture(face);const screen=new THREE.Mesh(new THREE.PlaneGeometry(.98,.7),new THREE.MeshBasicMaterial({map:tex}));screen.position.set(12.55+i*1.42,2.05,-10.17);sc.add(screen);liveScreens.push({face,fg,tex,i});}
 const chairBase=cyl(.09,.8,0x4a5963,14,.42,-8.5);const chairSeat=box(.9,.16,.85,0x1d2932,14,.85,-8.5);const chairBack=box(.9,1,.16,0x273844,14,1.38,-8.9);
+// Comandos físicos no console: manete do Top Drive, botão de emergência e manómetros.
+const cabinLever=new THREE.Group();cabinLever.position.set(12.4,1.12,-8.95);sc.add(cabinLever);
+const leverBase=cyl(.2,.12,0x697985,0,0,0,cabinLever,16);leverBase.rotation.x=Math.PI/2;
+const leverRod=cyl(.045,.78,0xb8c3c9,0,.38,0,cabinLever,10);leverRod.rotation.z=-.25;
+const leverGrip=new THREE.Mesh(new THREE.SphereGeometry(.13,14,12),new THREE.MeshStandardMaterial({color:0xd83d35,metalness:.25,roughness:.3}));leverGrip.position.set(.18,.76,0);cabinLever.add(leverGrip);
+const emergency=box(.22,.16,.22,0xd3262f,15.4,1.2,-8.95);emergency.material.emissive.setHex(0x661010);label('E-STOP',15.4,1.8,-8.95);
+for(let i=0;i<4;i++){const gauge=cyl(.22,.07,0x182b37,13.1+i*.72,1.45,-10.02,0,20);gauge.rotation.x=Math.PI/2;const needle=box(.018,.22,.025,0xf2c45c,13.1+i*.72,1.46,-9.96);needle.rotation.z=(i-1.5)*.15;}
 label('ENTER DOGHOUSE',14,4.7,-4.8);
 [[12,-4.82,1.6,.05],[17,-4.82,1.6,.05]].forEach(w=>box(w[2],1.2,w[3],0x141c22,w[0],2.6,w[1]).material.emissive.setHex(0x0a1218));
 box(.05,1.2,1.6,0x141c22,18.17,2.6,-8).material.emissive.setHex(0x0a1218);box(.05,1.2,1.6,0x141c22,9.83,2.6,-8).material.emissive.setHex(0x0a1218);
@@ -127,7 +147,7 @@ const beacon=new THREE.PointLight(0xff0000,0,25);beacon.position.set(0,38,0);sc.
 const P=new THREE.Group();sc.add(P);P.position.set(0,0,12);
 const pl=human(0xf2b300,0xffffff,0xd9a47c);P.add(pl);
 // entrada
-const K={},joy={x:0,y:0};let yaw=0,pit=.35,dist=7,doorA=0,doorT=0,panelOpen=false,run=false,bob=0;
+const K={},joy={x:0,y:0};let yaw=0,pit=.28,dist=7,doorA=0,doorT=0,panelOpen=false,run=false,bob=0,moveSpeed=0, sprintTouch=false,camYaw=yaw,camPit=pit;
 onkeydown=e=>{K[e.code]=1;if(e.code=='KeyE')interact();if(e.code=='Escape')closePanel&&closePanel()};onkeyup=e=>K[e.code]=0;
 const drag={};cv.onpointerdown=e=>{drag[e.pointerId]=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId)};
 cv.onpointermove=e=>{const d=drag[e.pointerId];if(!d)return;yaw-=(e.clientX-d[0])*.006;pit=clamp(pit+(e.clientY-d[1])*.005,.05,1.2);d[0]=e.clientX;d[1]=e.clientY};
@@ -138,6 +158,7 @@ jz.onpointerup=jz.onpointercancel=()=>{jid=null;joy.x=joy.y=0;jk.style.transform
 function jm(e){const r=jz.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let x=(e.clientX-cx)/(r.width/2),y=(e.clientY-cy)/(r.height/2);const l=Math.hypot(x,y);if(l>1){x/=l;y/=l}
  joy.x=x;joy.y=y;jk.style.transform=`translate(${x*35}px,${y*35}px)`;run=l>.9}
 document.getElementById('btnE').onclick=()=>interact();
+const sprintBtn=document.getElementById('btnSprint');if(sprintBtn){sprintBtn.onpointerdown=e=>{e.preventDefault();sprintTouch=true;sprintBtn.classList.add('active')};sprintBtn.onpointerup=sprintBtn.onpointercancel=sprintBtn.onpointerleave=()=>{sprintTouch=false;sprintBtn.classList.remove('active')}}
 // interações
 const IA=[
  {x:13.5,z:-4,r:2.6,t:'Abrir/fechar porta',f:()=>{doorT=doorT?0:1.6;msg(doorT?'Porta aberta':'Porta fechada')}},
@@ -148,7 +169,7 @@ const IA=[
  {x:-15,z:-12,r:5,t:'Inspecionar tanques ativos',f:()=>msg(`Volume ativo: ${S.pit.toFixed(1)} bbl (ganho ${(S.pit-S.pit0).toFixed(1)})`)},
  {x:0,z:-15.5,r:2.5,t:'Tratamento de lama (ajuste no painel)',f:()=>msg('Ajuste a densidade no Painel do Driller > Tratamento de lama')}];
 let near=null;
-function interact(){if(panelOpen)return;if(near)near.f()}
+function interact(){if(panelOpen)return;if(near){near.f();if(near.t.includes('Painel'))document.querySelector('#mission b').textContent='Modo operação — Doghouse';else document.querySelector('#mission b').textContent=near.t.replace('Abrir/fechar porta','Acesso ao Doghouse')}}
 // movimento com colisões
 const blocked=(x,z)=>{if(Math.abs(x)>20||Math.abs(z)>20)return true;
  for(const c of C)if(c.on()&&x+.4>c.x0&&x-.4<c.x1&&z+.4>c.z0&&z-.4<c.z1)return true;
@@ -161,20 +182,24 @@ function loop(now){
  // jogador
  let ix=(K.KeyD||K.ArrowRight?1:0)-(K.KeyA||K.ArrowLeft?1:0)+joy.x,iz=(K.KeyS||K.ArrowDown?1:0)-(K.KeyW||K.ArrowUp?1:0)+joy.y;
  if(panelOpen)ix=iz=0;const l=Math.hypot(ix,iz);if(l>1){ix/=l;iz/=l}
- if(l>.08){const sp=((K.ShiftLeft||run)?6:3.2)*Math.min(l,1),sy=Math.sin(yaw),cy=Math.cos(yaw),dx=(ix*cy+iz*sy)*sp*dt,dz=(iz*cy-ix*sy)*sp*dt;
+ const sprinting=!!(K.ShiftLeft||K.ShiftRight||run||sprintTouch);
+ const targetSpeed=l>.08?(sprinting?6.8:3.35)*Math.min(l,1):0;moveSpeed+=(targetSpeed-moveSpeed)*Math.min(1,dt*(targetSpeed>moveSpeed?5.5:8));
+ if(moveSpeed>.04){const sy=Math.sin(yaw),cy=Math.cos(yaw),dx=(ix*cy+iz*sy)*moveSpeed*dt,dz=(iz*cy-ix*sy)*moveSpeed*dt;
   if(!blocked(P.position.x+dx,P.position.z))P.position.x+=dx;if(!blocked(P.position.x,P.position.z+dz))P.position.z+=dz;
-  P.rotation.y=Math.atan2(dx,dz);bob+=dt*sp*2.2}
+  const desired=Math.atan2(dx,dz);let da=((desired-P.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;P.rotation.y+=da*Math.min(1,dt*11);bob+=dt*moveSpeed*2.25}
  const gy=gh(P.position.x,P.position.z);P.position.y+=(gy-P.position.y)*Math.min(1,dt*10);
- anim(pl,bob,l>.08?1:0);
+ anim(pl,bob,clamp(moveSpeed/3.4,0,1));pl.r.ch.rotation.z+=(((sprinting&&moveSpeed>.2)?0.035:0)-pl.r.ch.rotation.z)*Math.min(1,dt*5);
  // porta
  doorA+=(doorT-doorA)*Math.min(1,dt*5);doorP.rotation.y=-doorA;
  // câmara com colisão
  _v.set(P.position.x,P.position.y+1.6,P.position.z);
- _d.set(Math.sin(yaw)*Math.cos(pit),Math.sin(pit),Math.cos(yaw)*Math.cos(pit));
+ camYaw+=(yaw-camYaw)*Math.min(1,dt*9);camPit+=(pit-camPit)*Math.min(1,dt*9);
+ _d.set(Math.sin(camYaw)*Math.cos(camPit),Math.sin(camPit),Math.cos(camYaw)*Math.cos(camPit));
  ray.set(_v,_d);ray.far=dist;const hit=ray.intersectObjects(solids,false)[0];const dd=hit?Math.max(.8,hit.distance-.3):dist;
- _camTarget.copy(_v).addScaledVector(_d,dd);cam.position.lerp(_camTarget,1-Math.exp(-10*dt));cam.lookAt(_v);
+ _camTarget.copy(_v).addScaledVector(_d,dd);if(panelOpen){_camTarget.set(14,2.35,-6.8);_v.set(14,1.9,-10.1);cam.position.lerp(_camTarget,1-Math.exp(-4*dt));cam.lookAt(_v)}else{cam.position.lerp(_camTarget,1-Math.exp(-7*dt));cam.lookAt(_v)}
  // Top Drive, bloco, coluna
- const by=2+S.h;td.position.y=by;tdRot.rotation.y+=S.rpm*dt*.1;craneCable.rotation.z=Math.sin(S.t*.35)*.025;craneHook.position.y=4+Math.sin(S.t*.35)*.12;
+ const by=2+S.h;td.position.y=by;tdRot.rotation.y+=S.rpm*dt*.1;cabinLever.rotation.z=-S.lever*.55;
+ if(Math.floor(S.t*3)!==Math.floor((S.t-dt)*3)){liveScreens.forEach(({face,fg,tex,i})=>{fg.fillStyle='#06131c';fg.fillRect(0,0,512,320);fg.fillStyle='#48d6b0';fg.font='bold 25px monospace';fg.fillText(['TOP DRIVE / DRAWWORKS','MUD SYSTEM / PUMPS','WELL CONTROL'][i],18,38);fg.strokeStyle='#1a5360';fg.lineWidth=2;for(let y=65;y<300;y+=38){fg.beginPath();fg.moveTo(15,y);fg.lineTo(495,y);fg.stroke()}fg.fillStyle='#e8f4f5';fg.font='bold 34px monospace';const vals=i===0?[`RPM ${S.rpm.toFixed(0)}`,`BLOCK ${S.h.toFixed(1)} m`,`HOOK ${S.hook.toFixed(0)} klb`]:i===1?[`SPM ${S.spm.toFixed(0)}`,`SPP ${S.spp.toFixed(0)} psi`,`FLOW ${S.fin.toFixed(0)} gpm`]:[`PIT ${S.pit.toFixed(1)} bbl`,`CAS ${S.casP.toFixed(0)} psi`,S.al.length?'ALARM ACTIVE':'STATUS NORMAL'];vals.forEach((v,j)=>fg.fillText(v,20,112+j*62));fg.fillStyle=S.al.length&&i===2?'#ff4545':'#ffd05a';fg.fillRect(20,278,Math.max(15,Math.min(470,(i===0?S.h/28:i===1?S.spm/120:S.pit/500)*470)),8);tex.needsUpdate=true;});}td.rotation.y=Math.sin(S.t*1.4)*.006*(S.rpm>5?1:0);craneCable.rotation.z=Math.sin(S.t*.35)*.025;craneHook.position.y=4+Math.sin(S.t*.35)*.12;
  pipe.scale.y=Math.max(.01,by-.9);pipe.position.y=.9+(by-.9)/2;pipe.rotation.y+=S.rpm*dt*.1;
  const cl=Math.max(.1,36-(by+2.6));cabL.scale.y=cabR.scale.y=cl;cabL.position.y=cabR.position.y=by+2.6+cl/2;
  // trabalhadores
