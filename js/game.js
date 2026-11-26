@@ -1,10 +1,10 @@
 // Mundo 3D, jogador, câmara, interações. Tudo lê o estado S do motor.
 const cv=document.getElementById('c'),R=new THREE.WebGLRenderer({canvas:cv,antialias:devicePixelRatio<2});
 R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.shadowMap.enabled=true;
-const sc=new THREE.Scene();sc.background=new THREE.Color(0x8fc3e6);sc.fog=new THREE.Fog(0x8fc3e6,60,260);
+const sc=new THREE.Scene();sc.background=new THREE.Color(0x7d8b95);sc.fog=new THREE.Fog(0x7d8b95,40,230);
 const cam=new THREE.PerspectiveCamera(60,1,.1,400);
-sc.add(new THREE.HemisphereLight(0xdfefff,0x335577,.8));
-const sun=new THREE.DirectionalLight(0xfff0d0,1.1);sun.position.set(30,50,20);sun.castShadow=true;
+sc.add(new THREE.HemisphereLight(0xc8d2da,0x2a3238,.75));
+const sun=new THREE.DirectionalLight(0xe4ecf2,.8);sun.position.set(30,50,20);sun.castShadow=true;
 sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-35,right:35,top:35,bottom:-35,far:120});sc.add(sun);
 const M=(c,e)=>new THREE.MeshStandardMaterial({color:c,roughness:.7,metalness:.3,emissive:e||0});
 const solids=[],C=[];
@@ -14,13 +14,16 @@ function col(x0,x1,z0,z1,on){C.push({x0,x1,z0,z1,on:on||(()=>1)})}
 function label(t,x,y,z){const k=document.createElement('canvas');k.width=256;k.height=64;const g=k.getContext('2d');g.fillStyle='rgba(0,0,0,.6)';g.fillRect(0,0,256,64);g.fillStyle='#ffd24a';g.font='bold 28px sans-serif';g.textAlign='center';g.fillText(t,128,42);
  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(k),depthTest:false}));s.position.set(x,y,z);s.scale.set(5,1.25,1);sc.add(s)}
 // mar
-const seaG=new THREE.PlaneGeometry(500,500,50,50);seaG.rotateX(-Math.PI/2);const sea=new THREE.Mesh(seaG,M(0x1b6a96));sea.position.y=-12;sea.receiveShadow=true;sc.add(sea);
+const seaG=new THREE.PlaneGeometry(500,500,50,50);seaG.rotateX(-Math.PI/2);const sea=new THREE.Mesh(seaG,M(0x24414f));sea.position.y=-12;sea.receiveShadow=true;sc.add(sea);
 // plataforma
-box(42,1,42,0x6d7278,0,-.5,0).receiveShadow=true;
+const gk=document.createElement('canvas');gk.width=gk.height=64;{const g=gk.getContext('2d');g.fillStyle='#1c1f22';g.fillRect(0,0,64,64);g.strokeStyle='#4a5056';g.lineWidth=3;for(let i=0;i<64;i+=8){g.beginPath();g.moveTo(i,0);g.lineTo(i,64);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(64,i);g.stroke()}}
+const gt=new THREE.CanvasTexture(gk);gt.wrapS=gt.wrapT=THREE.RepeatWrapping;gt.repeat.set(42,42);
+const deck=box(42,1,42,0x777777,0,-.5,0);deck.material=new THREE.MeshStandardMaterial({map:gt,roughness:.9,metalness:.5});
+[-20.9,20.9].forEach(v=>{[1.1,.55].forEach(y=>{box(42,.1,.1,0xd9a800,0,y,v);box(.1,.1,42,0xd9a800,v,y,0)})});
 [[-18,-18],[18,-18],[-18,18],[18,18]].forEach(p=>cyl(1.2,16,0xc9a227,p[0],-8,p[1],0,10));
 // derrick
-[[-3.5,-3.5],[3.5,-3.5],[-3.5,3.5],[3.5,3.5]].forEach(p=>{cyl(.25,36,0xd9831f,p[0],18,p[1]);col(p[0]-.4,p[0]+.4,p[1]-.4,p[1]+.4)});
-for(let y=4;y<36;y+=8){box(7,.2,.2,0xd9831f,0,y,-3.5);box(7,.2,.2,0xd9831f,0,y,3.5);box(.2,.2,7,0xd9831f,-3.5,y,0);box(.2,.2,7,0xd9831f,3.5,y,0)}
+[[-3.5,-3.5],[3.5,-3.5],[-3.5,3.5],[3.5,3.5]].forEach(p=>{cyl(.25,36,0x6e5b46,p[0],18,p[1]);col(p[0]-.4,p[0]+.4,p[1]-.4,p[1]+.4)});
+for(let y=4;y<36;y+=8){box(7,.2,.2,0x6e5b46,0,y,-3.5);box(7,.2,.2,0x6e5b46,0,y,3.5);box(.2,.2,7,0x6e5b46,-3.5,y,0);box(.2,.2,7,0x6e5b46,3.5,y,0)}
 box(8,1,8,0x555a60,0,36.5,0);
 box(.2,32,.2,0xaaaaaa,-.8,17,-1.6);box(.2,32,.2,0xaaaaaa,.8,17,-1.6);
 box(2.4,.8,2.4,0x333333,0,.4,0);cyl(.5,.1,0x111111,0,.85,0);label('MESA ROTATIVA',0,3.4,2);
@@ -30,12 +33,14 @@ box(1.4,1.6,1,0xe8c01a,0,1,0,td);const tdRot=cyl(.35,.9,0x444444,0,0,0,td,8);box
 const hook=cyl(.15,.8,0xdd2222,0,2.2,0,td);
 const pipe=cyl(.12,1,0x9aa0a6,0,0,0),cabL=cyl(.04,1,0x222222,-.5,0,-.8),cabR=cyl(.04,1,0x222222,.5,0,-.8);
 // doghouse (14,-8)
-const dh=[box(8,4,.3,0x3b6ea5,14,2,-11,0,1),box(.3,4,6,0x3b6ea5,10,2,-8,0,1),box(.3,4,6,0x3b6ea5,18,2,-8,0,1),
- box(3,4,.3,0x3b6ea5,11.5,2,-5,0,1),box(3,4,.3,0x3b6ea5,16.5,2,-5,0,1),box(8.4,.3,6.4,0x2a4d75,14,4.1,-8,0,1)];
+const dh=[box(8,4,.3,0x9aa396,14,2,-11,0,1),box(.3,4,6,0x9aa396,10,2,-8,0,1),box(.3,4,6,0x9aa396,18,2,-8,0,1),
+ box(3,4,.3,0x9aa396,11.5,2,-5,0,1),box(3,4,.3,0x9aa396,16.5,2,-5,0,1),box(8.4,.3,6.4,0x6f786d,14,4.1,-8,0,1)];
 col(10.9,17.1,-11.2,-10.8);col(9.8,10.2,-11,-5);col(17.8,18.2,-11,-5);col(10,13,-5.2,-4.8);col(15,18,-5.2,-4.8);
-const doorP=new THREE.Group();doorP.position.set(13,0,-5);sc.add(doorP);const door=box(2,3.4,.2,0xc9a227,1,1.7,0,doorP,1);col(13,15,-5.3,-4.7,()=>doorA<.8);
+const doorP=new THREE.Group();doorP.position.set(13,0,-5);sc.add(doorP);const door=box(2,3.4,.2,0x8a5a2a,1,1.7,0,doorP,1);col(13,15,-5.3,-4.7,()=>doorA<.8);
 const panelM=box(3,1.2,.8,0x222a33,14,.6,-10.4);box(2.6,.8,.1,0x00ff88,14,1.5,-10.1).material=M(0x003322,0x00aa55);col(12.4,15.6,-10.9,-9.9);
-const scr=panelM;const dhLight=new THREE.PointLight(0xffffff,.9,12);dhLight.position.set(14,3.4,-8);sc.add(dhLight);label('DOGHOUSE',14,5.5,-5);
+const scr=panelM;const dhLight=new THREE.PointLight(0xffffff,.9,12);dhLight.position.set(14,3.4,-8);sc.add(dhLight);label('ENTER DOGHOUSE',14,4.7,-4.8);
+[[12,-4.82,1.6,.05],[17,-4.82,1.6,.05]].forEach(w=>box(w[2],1.2,w[3],0x141c22,w[0],2.6,w[1]).material.emissive.setHex(0x0a1218));
+box(.05,1.2,1.6,0x141c22,18.17,2.6,-8).material.emissive.setHex(0x0a1218);box(.05,1.2,1.6,0x141c22,9.83,2.6,-8).material.emissive.setHex(0x0a1218);
 // tanques de lama e equipamento
 const liq=[];
 [[-15,-15,'TANQUE ATIVO A'],[-15,-9,'TANQUE ATIVO B'],[-6,-17.5,'TANQUE ARMAZ.']].forEach((t,i)=>{
@@ -47,13 +52,13 @@ label('PENEIRAS',5,2.8,-17);label('DEGASSER',9,3.8,-17);label('DESANDER',12,3.8,
 box(2.5,1.2,2.5,0x4d6b3a,0,.6,-17,0,1);col(-1.4,1.4,-18.3,-15.7);label('TRATAMENTO DE LAMA',0,2.4,-17);
 // mezanino com escadas
 for(let i=0;i<12;i++)box(2.5,.25,.34,0x888888,-14,i*.25+.1,2.17+i*.333);
-box(8,3,8,0x555a60,-14,1.5,10,0,1);col(-18,-10,6,14,()=>P.y<2.4);box(8,.2,8,0xd9831f,-14,3.05,10);label('MEZANINO / ESCADAS',-14,5,10);
+box(8,3,8,0x555a60,-14,1.5,10,0,1);col(-18,-10,6,14,()=>P.y<2.4);box(8,.2,8,0x6e5b46,-14,3.05,10);label('MEZANINO / ESCADAS',-14,5,10);
 const gh=(x,z)=>(x>-15.3&&x<-12.7&&z>2&&z<6)?(z-2)/4*3:(x>-18&&x<-10&&z>6&&z<14)?3:0;
 // monkey board + workers
 box(3,.3,2,0x666666,0,22,-3);
 function worker(c){const g=new THREE.Group();const b=cyl(.3,1.1,c,0,.8,0,g,8);cyl(.14,.8,0x222a33,-.1,.4,0,g);const h=new THREE.Mesh(new THREE.SphereGeometry(.22,8,8),M(0xe0b090));h.position.y=1.6;g.add(h);
- const hh=new THREE.Mesh(new THREE.SphereGeometry(.25,8,6,0,6.3,0,1.6),M(0xffee00));hh.position.y=1.7;g.add(hh);sc.add(g);return g}
-const rn1=worker(0xff7a00),rn2=worker(0xff7a00),dm=worker(0x2d9cdb);dm.position.set(0,22.15,-3);
+ const hh=new THREE.Mesh(new THREE.SphereGeometry(.25,8,6,0,6.3,0,1.6),M(0xf4f4f4));hh.position.y=1.7;g.add(hh);sc.add(g);return g}
+const rn1=worker(0xf2b300),rn2=worker(0xf2b300),dm=worker(0xf2b300);dm.position.set(0,22.15,-3);
 // partículas de lama ao longo do circuito
 const PATH=[[-15,2.6,-9],[-8,1.2,-10],[-3.5,1,-3.6],[-3.5,32,-3.6],[0,32,0],[0,1,0],[0,-1,0],[1.2,.8,0],[1.2,.8,-12],[5,2,-17],[9,2,-17],[12,2,-17],[15,2,-17],[15,.8,-19.5],[-15,.8,-19.5],[-15,2.7,-15],[-15,2.7,-9]].map(p=>new THREE.Vector3(...p));
 const seg=[];let tot=0;for(let i=1;i<PATH.length;i++){const l=PATH[i].distanceTo(PATH[i-1]);seg.push(l);tot+=l}
@@ -65,8 +70,8 @@ cyl(.12,31,0x999999,-3.5,16.5,-3.6);
 const beacon=new THREE.PointLight(0xff0000,0,25);beacon.position.set(0,38,0);sc.add(beacon);const bm=new THREE.Mesh(new THREE.SphereGeometry(.5),M(0x440000));bm.position.copy(beacon.position);sc.add(bm);
 // jogador
 const P=new THREE.Group();sc.add(P);P.position.set(0,0,12);
-const pb=cyl(.32,1.2,0x2a7fdb,0,.8,0,P,10),ph=new THREE.Mesh(new THREE.SphereGeometry(.25,10,10),M(0xe0b090));ph.position.y=1.6;P.add(ph);
-const phat=new THREE.Mesh(new THREE.SphereGeometry(.28,10,8,0,6.3,0,1.6),M(0xff6a00));phat.position.y=1.68;P.add(phat);
+const pb=cyl(.32,1.2,0xf2b300,0,.8,0,P,10),ph=new THREE.Mesh(new THREE.SphereGeometry(.25,10,10),M(0xe0b090));ph.position.y=1.6;P.add(ph);
+const phat=new THREE.Mesh(new THREE.SphereGeometry(.28,10,8,0,6.3,0,1.6),M(0xffffff));phat.position.y=1.68;P.add(phat);
 const legL=cyl(.1,.6,0x222222,-.15,.3,0,P),legR=cyl(.1,.6,0x222222,.15,.3,0,P);
 // entrada
 const K={},joy={x:0,y:0};let yaw=0,pit=.35,dist=7,doorA=0,doorT=0,panelOpen=false,run=false,bob=0;
