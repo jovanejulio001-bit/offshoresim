@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Simulador de Perfuração Offshore</title>
+<link rel="stylesheet" href="css/style.css"></head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud"></div><div id="toast"></div><div id="prompt"></div>
+<div id="alarmbar"></div>
+<div id="joy"><div id="knob"></div></div>
+<button id="btnE">E</button>
+<button id="btnAcc">Conta</button>
+<div id="help">WASD mover · Shift correr · arrastar = câmara · roda = zoom · E interagir · Esc fechar painel</div>
+
+<div id="acct" hidden><h3>Conta (Supabase)</h3>
+<input id="em" type="email" placeholder="email"><input id="pw" type="password" placeholder="palavra-passe">
+<div><button id="aIn">Entrar</button><button id="aUp">Criar</button><button id="aSave">Guardar progresso</button><button id="aOut">Sair</button><button id="aX">Fechar</button></div>
+<small id="aMsg"></small></div>
+
+<div id="panel" hidden>
+ <div class="top"><b>PAINEL DO DRILLER</b><span id="pAl"></span><button id="pX">Fechar (Esc)</button></div>
+ <div class="grid">
+  <section class="ctl"><h4>Bombas de lama</h4>
+   <button id="bPump" class="tg">Bomba: OFF</button>
+   <label>SPM alvo <b id="vSpm">60</b><input id="sSpm" type="range" min="0" max="120" value="60"></label>
+   <h4>Top Drive</h4>
+   <button id="bRot" class="tg">Rotação: OFF</button>
+   <label>RPM alvo <b id="vRpm">80</b><input id="sRpm" type="range" min="0" max="150" value="80"></label>
+   <div id="dir">Sentido: horário</div>
+   <h4>Alavanca do Top Drive</h4>
+   <div class="lv"><div id="track"><div id="handle"></div></div>
+    <div id="lvInfo">Neutro<br><span id="lvPos">0%</span><br>Vel: <span id="lvVel">0.00</span> m/s<br>Altura: <span id="lvH">28.0</span> m</div></div>
+   <h4>Manuseio de tubos</h4>
+   <button id="bSlips" class="tg">Cunhas: SOLTAS</button>
+   <button id="bElev" class="tg">Elevadores: FECHADOS</button>
+   <button id="bConn">Conectar tubo</button>
+   <h4>Tratamento de lama</h4>
+   <label>Densidade alvo <b id="vDens">9.60</b> ppg<input id="sDens" type="range" min="8.5" max="13" step=".05" value="9.6"></label>
+   <h4>Controlo de poço / LOT</h4>
+   <button id="bKick">Simular kick</button>
+   <button id="bBop" class="tg">BOP: ABERTO</button>
+   <button id="bLot">Iniciar LOT</button>
+   <button id="bLotP">Bombear (premir)</button>
+   <button id="bLotR">Registar resultado</button>
+   <div id="lotRes"></div>
+  </section>
+  <section><canvas id="cG" width="560" height="270"></canvas><div id="dig"></div><canvas id="cW" width="260" height="440"></canvas></section>
+  <section><canvas id="cH" width="520" height="640"></canvas><canvas id="cL" width="520" height="220"></canvas></section>
+ </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/sim.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/game.js"></script>
+</body></html>
