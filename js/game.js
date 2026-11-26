@@ -1,12 +1,16 @@
 // Mundo 3D, jogador, câmara, interações. Tudo lê o estado S do motor.
 const cv=document.getElementById('c'),R=new THREE.WebGLRenderer({canvas:cv,antialias:devicePixelRatio<2});
-R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.shadowMap.enabled=true;
+R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.15;
 const sc=new THREE.Scene();sc.background=new THREE.Color(0x7d8b95);sc.fog=new THREE.Fog(0x7d8b95,40,230);
 const cam=new THREE.PerspectiveCamera(60,1,.1,400);
 sc.add(new THREE.HemisphereLight(0xc8d2da,0x2a3238,.75));
 const sun=new THREE.DirectionalLight(0xe4ecf2,.8);sun.position.set(30,50,20);sun.castShadow=true;
-sun.shadow.mapSize.set(1024,1024);Object.assign(sun.shadow.camera,{left:-35,right:35,top:35,bottom:-35,far:120});sc.add(sun);
-const M=(c,e)=>new THREE.MeshStandardMaterial({color:c,roughness:.7,metalness:.3,emissive:e||0});
+sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-35,right:35,top:35,bottom:-35,far:120});sc.add(sun);
+const rk=document.createElement('canvas');rk.width=rk.height=256;{const g=rk.getContext('2d');g.fillStyle='#d6d6d2';g.fillRect(0,0,256,256);
+ for(let i=0;i<2500;i++){const x=Math.random()*256,y=Math.random()*256,a=Math.random()*.25;g.fillStyle=Math.random()<.5?`rgba(120,62,24,${a})`:`rgba(30,30,30,${a})`;g.fillRect(x,y,1+Math.random()*5,1+Math.random()*5)}
+ for(let i=0;i<40;i++){const x=Math.random()*256,y=Math.random()*200,l=20+Math.random()*50,gr=g.createLinearGradient(0,y,0,y+l);gr.addColorStop(0,'rgba(110,55,20,.35)');gr.addColorStop(1,'rgba(110,55,20,0)');g.fillStyle=gr;g.fillRect(x,y,2+Math.random()*3,l)}}
+const RM=new THREE.CanvasTexture(rk);RM.wrapS=RM.wrapT=THREE.RepeatWrapping;RM.repeat.set(2,2);RM.anisotropy=4;
+const M=(c,e)=>new THREE.MeshStandardMaterial({color:c,roughness:.75,metalness:.35,emissive:e||0,map:RM,bumpMap:RM,bumpScale:1.2});
 const solids=[],C=[];
 function box(w,h,d,c,x,y,z,p,solid){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c));m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;(p||sc).add(m);if(solid)solids.push(m);return m}
 function cyl(r,h,c,x,y,z,p,seg){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg||12),M(c));m.position.set(x,y,z);m.castShadow=true;(p||sc).add(m);return m}
@@ -14,7 +18,7 @@ function col(x0,x1,z0,z1,on){C.push({x0,x1,z0,z1,on:on||(()=>1)})}
 function label(t,x,y,z){const k=document.createElement('canvas');k.width=256;k.height=64;const g=k.getContext('2d');g.fillStyle='rgba(0,0,0,.6)';g.fillRect(0,0,256,64);g.fillStyle='#ffd24a';g.font='bold 28px sans-serif';g.textAlign='center';g.fillText(t,128,42);
  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(k),depthTest:false}));s.position.set(x,y,z);s.scale.set(5,1.25,1);sc.add(s)}
 // mar
-const seaG=new THREE.PlaneGeometry(500,500,50,50);seaG.rotateX(-Math.PI/2);const sea=new THREE.Mesh(seaG,M(0x24414f));sea.position.y=-12;sea.receiveShadow=true;sc.add(sea);
+const seaG=new THREE.PlaneGeometry(500,500,50,50);seaG.rotateX(-Math.PI/2);const sea=new THREE.Mesh(seaG,new THREE.MeshStandardMaterial({color:0x2a4c5e,roughness:.25,metalness:.1}));sea.position.y=-12;sea.receiveShadow=true;sc.add(sea);
 // plataforma
 const gk=document.createElement('canvas');gk.width=gk.height=64;{const g=gk.getContext('2d');g.fillStyle='#1c1f22';g.fillRect(0,0,64,64);g.strokeStyle='#4a5056';g.lineWidth=3;for(let i=0;i<64;i+=8){g.beginPath();g.moveTo(i,0);g.lineTo(i,64);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(64,i);g.stroke()}}
 const gt=new THREE.CanvasTexture(gk);gt.wrapS=gt.wrapT=THREE.RepeatWrapping;gt.repeat.set(42,42);
@@ -56,9 +60,27 @@ box(8,3,8,0x555a60,-14,1.5,10,0,1);col(-18,-10,6,14,()=>P.y<2.4);box(8,.2,8,0x6e
 const gh=(x,z)=>(x>-15.3&&x<-12.7&&z>2&&z<6)?(z-2)/4*3:(x>-18&&x<-10&&z>6&&z<14)?3:0;
 // monkey board + workers
 box(3,.3,2,0x666666,0,22,-3);
-function worker(c){const g=new THREE.Group();const b=cyl(.3,1.1,c,0,.8,0,g,8);cyl(.14,.8,0x222a33,-.1,.4,0,g);const h=new THREE.Mesh(new THREE.SphereGeometry(.22,8,8),M(0xe0b090));h.position.y=1.6;g.add(h);
- const hh=new THREE.Mesh(new THREE.SphereGeometry(.25,8,6,0,6.3,0,1.6),M(0xf4f4f4));hh.position.y=1.7;g.add(hh);sc.add(g);return g}
-const rn1=worker(0xf2b300),rn2=worker(0xf2b300),dm=worker(0xf2b300);dm.position.set(0,22.15,-3);
+function human(coat,hat,skin){
+ const mt=(c,r,m)=>new THREE.MeshStandardMaterial({color:c,roughness:r||.85,metalness:m||0}),g=new THREE.Group(),
+ sh=(geo,mat,x,y,z,p)=>{const o=new THREE.Mesh(geo,mat);o.position.set(x,y,z);o.castShadow=true;p.add(o);return o},
+ cm=mt(coat),sk=mt(skin,.6),dk=mt(0x1b1d20,.7),rf=mt(0xdcdcd0,.35,.3),cy=(a,b,h)=>new THREE.CylinderGeometry(a,b,h,12),sp=r=>new THREE.SphereGeometry(r,12,10);
+ const hips=new THREE.Group();hips.position.y=.95;g.add(hips);sh(cy(.2,.19,.22),cm,0,.02,0,hips).scale.z=.7;
+ const ch=new THREE.Group();ch.position.y=.05;hips.add(ch);
+ sh(cy(.26,.2,.52),cm,0,.27,0,ch).scale.z=.65;sh(cy(.222,.222,.05),rf,0,.15,0,ch).scale.z=.66;sh(cy(.24,.24,.05),rf,0,.3,0,ch).scale.z=.66;
+ sh(cy(.06,.065,.1),sk,0,.57,0,ch);
+ const hd=new THREE.Group();hd.position.y=.68;ch.add(hd);sh(sp(.12),sk,0,0,0,hd).scale.set(.9,1.1,1);
+ [-1,1].forEach(x=>{sh(sp(.015),dk,x*.045,.02,.105,hd);sh(sp(.03),sk,x*.115,0,0,hd)});sh(sp(.022),sk,0,-.015,.12,hd);
+ sh(new THREE.BoxGeometry(.2,.035,.02),mt(0x223344,.2,.5),0,.025,.116,hd);
+ sh(new THREE.SphereGeometry(.145,14,8,0,6.29,0,1.57),mt(hat,.45),0,.035,0,hd);sh(cy(.17,.17,.015),mt(hat,.45),0,.035,0,hd);sh(new THREE.BoxGeometry(.15,.012,.07),mt(hat,.45),0,.035,.15,hd);
+ const arm=s=>{const a=new THREE.Group();a.position.set(s*.31,.47,0);ch.add(a);sh(sp(.085),cm,0,0,0,a);sh(cy(.07,.06,.3),cm,0,-.15,0,a);const e=new THREE.Group();e.position.y=-.3;a.add(e);sh(cy(.06,.05,.27),cm,0,-.135,0,e);sh(sp(.065),dk,0,-.3,0,e);return[a,e]};
+ const leg=s=>{const l=new THREE.Group();l.position.set(s*.1,-.08,0);hips.add(l);sh(cy(.09,.075,.42),cm,0,-.21,0,l);const k=new THREE.Group();k.position.y=-.42;l.add(k);sh(cy(.075,.06,.4),cm,0,-.2,0,k);sh(new THREE.BoxGeometry(.12,.11,.27),dk,0,-.41,.05,k);return[l,k]};
+ const[aL,eL]=arm(-1),[aR,eR]=arm(1),[lL,kL]=leg(-1),[lR,kR]=leg(1);
+ g.r={hips,ch,head:hd,aL,aR,eL,eR,lL,lR,kL,kR};sc.add(g);return g}
+function anim(h,b,a){const r=h.r,s=Math.sin(b),c=Math.cos(b);r.lL.rotation.x=s*.7*a;r.lR.rotation.x=-s*.7*a;r.kL.rotation.x=Math.max(0,c)*.9*a;r.kR.rotation.x=Math.max(0,-c)*.9*a;
+ r.aL.rotation.x=-s*.6*a-.05;r.aR.rotation.x=s*.6*a-.05;r.eL.rotation.x=r.eR.rotation.x=-.3-.3*a;r.hips.position.y=.95+Math.abs(c)*.04*a;r.ch.rotation.x=.08*a;r.ch.scale.y=1+Math.sin(S.t*1.6)*.006*(1-a)}
+function work(h,t,k,i){const r=h.r;r.aL.rotation.x=k?-1.1+Math.sin(t*9+i)*.35:Math.sin(t*1.2+i)*.05;r.aR.rotation.x=k?-1.1+Math.sin(t*9+i+2)*.35:-Math.sin(t*1.2+i)*.05;
+ r.eL.rotation.x=r.eR.rotation.x=k?-.7:-.25;r.lL.rotation.x=r.lR.rotation.x=0;r.ch.scale.y=1+Math.sin(t*1.5+i)*.006;r.head.rotation.y=Math.sin(t*.6+i)*.3}
+const rn1=human(0xf2b300,0xffffff,0xc89878),rn2=human(0xf2b300,0xffffff,0x8d5a3b),dm=human(0xf2b300,0xffd200,0xe0b090);dm.position.set(0,22.15,-3);
 // partículas de lama ao longo do circuito
 const PATH=[[-15,2.6,-9],[-8,1.2,-10],[-3.5,1,-3.6],[-3.5,32,-3.6],[0,32,0],[0,1,0],[0,-1,0],[1.2,.8,0],[1.2,.8,-12],[5,2,-17],[9,2,-17],[12,2,-17],[15,2,-17],[15,.8,-19.5],[-15,.8,-19.5],[-15,2.7,-15],[-15,2.7,-9]].map(p=>new THREE.Vector3(...p));
 const seg=[];let tot=0;for(let i=1;i<PATH.length;i++){const l=PATH[i].distanceTo(PATH[i-1]);seg.push(l);tot+=l}
@@ -70,9 +92,7 @@ cyl(.12,31,0x999999,-3.5,16.5,-3.6);
 const beacon=new THREE.PointLight(0xff0000,0,25);beacon.position.set(0,38,0);sc.add(beacon);const bm=new THREE.Mesh(new THREE.SphereGeometry(.5),M(0x440000));bm.position.copy(beacon.position);sc.add(bm);
 // jogador
 const P=new THREE.Group();sc.add(P);P.position.set(0,0,12);
-const pb=cyl(.32,1.2,0xf2b300,0,.8,0,P,10),ph=new THREE.Mesh(new THREE.SphereGeometry(.25,10,10),M(0xe0b090));ph.position.y=1.6;P.add(ph);
-const phat=new THREE.Mesh(new THREE.SphereGeometry(.28,10,8,0,6.3,0,1.6),M(0xffffff));phat.position.y=1.68;P.add(phat);
-const legL=cyl(.1,.6,0x222222,-.15,.3,0,P),legR=cyl(.1,.6,0x222222,.15,.3,0,P);
+const pl=human(0xf2b300,0xffffff,0xd9a47c);P.add(pl);
 // entrada
 const K={},joy={x:0,y:0};let yaw=0,pit=.35,dist=7,doorA=0,doorT=0,panelOpen=false,run=false,bob=0;
 onkeydown=e=>{K[e.code]=1;if(e.code=='KeyE')interact();if(e.code=='Escape')closePanel&&closePanel()};onkeyup=e=>K[e.code]=0;
@@ -112,7 +132,7 @@ function loop(now){
   if(!blocked(P.position.x+dx,P.position.z))P.position.x+=dx;if(!blocked(P.position.x,P.position.z+dz))P.position.z+=dz;
   P.rotation.y=Math.atan2(dx,dz);bob+=dt*sp*2.2}
  const gy=gh(P.position.x,P.position.z);P.position.y+=(gy-P.position.y)*Math.min(1,dt*10);
- legL.rotation.x=Math.sin(bob)*.6*(l>.08);legR.rotation.x=-Math.sin(bob)*.6*(l>.08);
+ anim(pl,bob,l>.08?1:0);
  // porta
  doorA+=(doorT-doorA)*Math.min(1,dt*5);doorP.rotation.y=-doorA;
  // câmara com colisão
@@ -127,7 +147,7 @@ function loop(now){
  // trabalhadores
  const k=S.conn>0?1:0,t=S.t;
  rn1.position.set(1.8-k*.5,0,2.4-k*1.2);rn2.position.set(-1.8+k*.5,0,2.4-k*1.2);
- rn1.rotation.set(k*Math.sin(t*10)*.25,0,0);rn2.rotation.set(k*Math.sin(t*10+1)*.25,0,0);rn1.position.y=rn2.position.y=Math.abs(Math.sin(t*(2+k*6)))*.04;
+ rn1.rotation.set(.12*k,Math.PI,0);rn2.rotation.set(.12*k,Math.PI,0);work(rn1,t,k,0);work(rn2,t,k,1);work(dm,t,0,2);rn1.position.y=rn2.position.y=Math.abs(Math.sin(t*(2+k*6)))*.04;
  dm.position.x=k?Math.sin(t*2)*1:Math.sin(t*.5)*.3;dm.rotation.y=Math.sin(t)*.4;
  // lama
  const flow=S.fout>0?S.fout:S.fin;const vel=flow/60*1.2;
