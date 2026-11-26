@@ -2,7 +2,43 @@
 <html lang="pt"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Simulador de Perfuração Offshore</title>
-<link rel="stylesheet" href="css/style.css"></head>
+<style>
+*{box-sizing:border-box;touch-action:none}
+:root{--gold:#ffbd35;--gold2:#f08a24;--ink:#07131e;--panel:#0b1b2b;--panel2:#12283a;--line:#36536a;--text:#f2f6fa;--muted:#9bb0c1;--green:#39d98a;--red:#ff4b4b}
+html,body{margin:0;height:100%;overflow:hidden;background:#07131e;font-family:Inter,system-ui,Segoe UI,sans-serif;color:var(--text);user-select:none}
+#c{touch-action:none;position:fixed;inset:0;width:100%;height:100%;display:block;outline:0}
+#hud{position:fixed;top:14px;left:14px;min-width:220px;background:linear-gradient(135deg,#071522eF,#10283bd9);border:1px solid #8ba6bb55;border-left:3px solid var(--gold);padding:11px 14px;border-radius:10px;box-shadow:0 8px 28px #0008;font:600 11px/1.65 ui-monospace,monospace;letter-spacing:.2px;white-space:pre;pointer-events:none;backdrop-filter:blur(10px);z-index:8}
+#topActions{position:fixed;right:14px;top:14px;z-index:12;display:flex;align-items:center;gap:8px;padding:7px 9px;background:#071522d9;border:1px solid #8ba6bb55;border-radius:10px;backdrop-filter:blur(10px)}
+#topActions label{font-size:9px;letter-spacing:1.2px;color:var(--muted);font-weight:800}#quality{background:#19344a;color:#fff;border:1px solid #527089;border-radius:6px;padding:7px;font-size:10px;font-weight:800}
+#toast{position:fixed;top:78px;left:50%;transform:translateX(-50%);background:#101f2eeF;border:1px solid var(--gold);color:#fff;padding:10px 18px;border-radius:9px;font-size:13px;display:none;max-width:90%;z-index:35;text-align:center;box-shadow:0 8px 30px #0009}
+#prompt{position:fixed;bottom:150px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--gold),var(--gold2));color:#171b20;padding:10px 18px;border-radius:7px;font-weight:900;letter-spacing:.3px;display:none;z-index:11;box-shadow:0 5px 22px #0008;border:1px solid #fff8}
+#alarmbar{position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#9e1010,#ef3333,#9e1010);text-align:center;font-weight:900;letter-spacing:1px;padding:8px;display:none;z-index:50;box-shadow:0 4px 20px #e00a;animation:alarmPulse .7s infinite alternate}@keyframes alarmPulse{to{filter:brightness(1.3)}}
+#joy{touch-action:none;position:fixed;left:26px;bottom:28px;width:132px;height:132px;border-radius:50%;background:radial-gradient(circle,#ffffff20 0 42%,#07152288 44% 100%);border:2px solid #ffffff88;box-shadow:0 5px 25px #0008,inset 0 0 20px #ffffff22;z-index:10;touch-action:none}
+#joy:before{content:"";position:absolute;inset:10px;border:1px dashed #ffffff55;border-radius:50%}
+#knob{position:absolute;left:35px;top:35px;width:60px;height:60px;border-radius:50%;background:linear-gradient(145deg,#fff9,#aebdca88);border:2px solid #fff;box-shadow:0 4px 14px #0008;pointer-events:none}
+#btnE{touch-action:none;position:fixed;right:30px;bottom:42px;width:76px;height:76px;border-radius:50%;border:3px solid #fff9;background:linear-gradient(145deg,#ffce52,#e88c10);color:#1a1a1a;font:900 22px sans-serif;z-index:10;box-shadow:0 5px 22px #0009}
+#btnE:active{transform:scale(.94)}
+#help{position:fixed;bottom:8px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:.4px;color:#fff;background:#06131dbb;padding:6px 12px;border:1px solid #ffffff22;border-radius:20px;opacity:.85;pointer-events:none;white-space:nowrap;z-index:7}
+button{background:linear-gradient(180deg,#29465c,#172e42);color:#f5f8fb;border:1px solid #55748b;border-radius:7px;padding:9px 12px;margin:3px;font-size:12px;font-weight:750;cursor:pointer;transition:filter .15s,transform .15s,background .15s}button:hover{filter:brightness(1.18)}button:active{transform:translateY(1px)}button.on{background:linear-gradient(180deg,#25875d,#14583c);border-color:#53d99a;box-shadow:0 0 12px #39d98a33}button.bad{background:linear-gradient(180deg,#d92e37,#8e171e);border-color:#ff6c6c;box-shadow:0 0 14px #f003}
+#acct{position:fixed;top:64px;right:14px;background:linear-gradient(145deg,#10283a,#071521);padding:15px;border:1px solid #54748a;border-radius:12px;z-index:45;width:min(320px,calc(100vw - 28px));box-shadow:0 14px 40px #000b}#acct h3{margin:0 0 10px;color:var(--gold);font-size:14px;letter-spacing:1px}#acct input{display:block;width:100%;margin:6px 0;padding:10px;background:#071521;color:#fff;border:1px solid #36566d;border-radius:6px}
+#panel{position:fixed;inset:0;background:radial-gradient(ellipse at top,#18364a 0,#091724 55%,#050d15 100%);z-index:25;overflow:auto;touch-action:pan-y;padding-bottom:22px}
+.top{display:flex;gap:12px;align-items:center;padding:13px 17px;background:linear-gradient(90deg,#102b40,#183d55);position:sticky;top:0;z-index:2;border-bottom:1px solid #6a8ca355;box-shadow:0 5px 20px #0008}.top b{font-size:14px;letter-spacing:1.5px;color:#fff}.top b:before{content:"●";color:var(--gold);margin-right:9px}#pAl{flex:1;color:#ffd16b;font-size:12px;font-weight:800}#pX{background:#5c2930;border-color:#a64a52}
+.grid{display:grid;grid-template-columns:minmax(245px,290px) minmax(300px,1fr) minmax(300px,1fr);gap:13px;padding:14px;max-width:1800px;margin:auto}
+.grid>section,.ctl{background:linear-gradient(160deg,#12283aee,#091724f5);border:1px solid #36556b;border-radius:12px;padding:12px;box-shadow:0 8px 25px #0005;min-width:0}.ctl h4,.monitor h3{margin:12px 0 8px;color:#ffc34b;font-size:11px;letter-spacing:1.1px;text-transform:uppercase;border-bottom:1px solid #3d5c70;padding-bottom:7px}.ctl h4:first-child{margin-top:2px}.ctl label{display:block;font-size:11px;color:#b7c8d5;margin:8px 0}.ctl label b{float:right;color:#fff;font-family:ui-monospace,monospace}.ctl input[type=range]{width:100%;accent-color:var(--gold);margin-top:7px}.tg{display:block;width:100%;text-align:left}.lv{display:flex;gap:14px;align-items:center;padding:10px;background:#06131f;border:1px solid #35546a;border-radius:9px}.lv #track{flex:none}.lv #lvInfo{font:11px/1.7 ui-monospace,monospace;color:#c8d6e1}
+#track{position:relative;width:62px;height:178px;background:linear-gradient(90deg,#0b1823,#263c4c,#0b1823);border:2px solid #6d8799;border-radius:12px;touch-action:none;box-shadow:inset 0 0 12px #000}#track:before{position:absolute;left:50%;top:7px;bottom:7px;width:6px;margin-left:-3px;background:#536879;border-radius:4px}#track:after{content:"NEUTRO";position:absolute;left:68px;top:50%;font-size:8px;color:#8da5b8;white-space:nowrap}#handle{position:absolute;left:5px;right:5px;height:29px;top:74px;background:linear-gradient(180deg,#ff6565,#a81822);border-radius:7px;border:2px solid #ffdada;cursor:grab;box-shadow:0 3px 9px #0009}
+section canvas{width:100%;height:auto;background:linear-gradient(135deg,#06121e,#0b2232);border:1px solid #36566d;border-radius:8px;display:block;margin-bottom:12px}.monitor h3{margin-top:5px}#dig{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:12px}#dig div{background:linear-gradient(145deg,#0b1d2b,#102a3d);border:1px solid #29475c;border-radius:6px;padding:7px 5px;font:9px ui-monospace,monospace;text-align:center;color:#9fb5c6;min-width:0}#dig b{display:block;color:#62e6a5;font-size:15px;margin:3px 0 1px;overflow-wrap:anywhere}
+#lotRes{font:11px/1.6 ui-monospace,monospace;color:#ffd16b;margin-top:6px}.ctl button{min-height:36px}.ctl #bLotP{width:100%;background:linear-gradient(180deg,#a16a22,#6c4316)}
+@media(max-width:1050px){.grid{grid-template-columns:minmax(230px,1fr) minmax(260px,1fr)}.grid .ctl{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px}.ctl h4{grid-column:1/-1}.ctl .lv{grid-column:1/-1}}
+@media(max-width:650px){#hud{top:8px;left:8px;min-width:0;padding:7px 9px;font-size:9px;max-width:58vw}#topActions{top:8px;right:8px;gap:4px;padding:5px}#topActions label{display:none}#quality{font-size:9px;padding:6px}#btnAcc{padding:7px;font-size:9px}#joy{width:112px;height:112px;left:16px;bottom:20px}#knob{width:52px;height:52px;left:28px;top:28px}#btnE{width:64px;height:64px;right:18px;bottom:30px}#help{display:none}#prompt{bottom:125px;font-size:11px;max-width:90%;text-align:center}.grid{display:flex;flex-direction:column;padding:8px}.grid .ctl{display:block}.top{padding:9px;flex-wrap:wrap}.top b{font-size:11px}#dig{grid-template-columns:repeat(3,minmax(0,1fr))}.monitor canvas{max-height:420px}.lv{justify-content:flex-start}}
+
+/* HUD de jogo em terceira pessoa */
+#mission{position:fixed;left:50%;top:14px;transform:translateX(-50%);z-index:8;display:flex;flex-direction:column;gap:3px;min-width:240px;padding:9px 16px;text-align:center;background:linear-gradient(135deg,#071522d9,#10283be8);border:1px solid #9db4c655;border-radius:9px;box-shadow:0 8px 28px #0007;pointer-events:none;backdrop-filter:blur(9px)}#mission span{font:800 8px ui-monospace,monospace;letter-spacing:1.7px;color:var(--gold)}#mission b{font-size:13px;letter-spacing:.3px}#mission small{font-size:9px;color:#a9bdcc}
+#btnSprint{position:fixed;right:118px;bottom:48px;width:62px;height:62px;border-radius:50%;z-index:10;background:linear-gradient(145deg,#315b78,#142c40);border:2px solid #d9e9f5;color:#fff;font-size:11px;font-weight:950;box-shadow:0 5px 22px #0009}#btnSprint.active{background:linear-gradient(145deg,#e9a72c,#a34b13);border-color:#ffe0a0}
+#panel .top{backdrop-filter:blur(12px)}
+@media(max-width:650px){#mission{top:auto;bottom:145px;left:50%;min-width:0;width:max-content;max-width:48vw;padding:6px 9px}#mission b{font-size:10px}#mission small{display:none}#btnSprint{right:94px;bottom:34px;width:54px;height:54px;font-size:9px}#btnE{right:20px;bottom:30px}}
+@media(min-width:900px){#btnSprint{display:none}}
+
+</style></head>
 <body>
 <canvas id="c"></canvas>
 <div id="hud"></div><div id="toast"></div><div id="prompt"></div>
@@ -52,8 +88,415 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="js/config.js"></script>
-<script src="js/sim.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/game.js"></script>
+<script>
+// Preencha com os dados do seu projeto Supabase (Settings > API). Use apenas a chave "anon".
+window.SB={url:'https://SEU-PROJETO.supabase.co',key:'SUA_CHAVE_ANON'};
+
+</script>
+<script>
+// Motor de simulação único: todos os controlos e animações lêem/escrevem em S.
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),mv=(v,t,d)=>v+clamp(t-v,-d,d);
+const S={pumpOn:0,spmT:60,spm:0,rotOn:0,rpmT:80,rpm:0,lever:0,vel:0,h:28,slips:0,needConn:0,elevClosed:1,conn:0,
+ bit:1500,hole:1520,anchor:1528,dens:9.6,densT:9.6,pit:400,pit0:400,tankA:192,tankB:208,storageTank:350,tripTank:40,pore:8.8,kick:0,bop:0,influx:0,
+ wob:0,rop:0,tq:0,hook:0,spp:0,fin:0,fout:0,casP:0,chk:0,annP:0,hydro:0,t:0,al:[],msg:'',msgT:0,hT:0,
+ lot:{on:0,pump:0,vol:0,p:0,leak:null,pts:[],res:[]},hist:{},stats:{conn:0,drilled:0,kicks:0}};
+['wob','rop','rpm','tq','hook','spp','fin','fout','pit','dens','depth'].forEach(k=>S.hist[k]=[]);
+function msg(t){S.msg=t;S.msgT=4}
+function step(dt){
+ S.t+=dt;const L=S.lot;
+ S.spm=mv(S.spm,S.pumpOn&&!L.on?S.spmT:0,30*dt);
+ if(S.rotOn&&(S.spm<20||S.slips)){S.rotOn=0;msg('Rotação desligada: sem circulação ou cunhas ativas')}
+ S.rpm=mv(S.rpm,S.rotOn?S.rpmT:0,40*dt);
+ // alavanca física -> velocidade do Top Drive (aceleração/desaceleração + interlocks)
+ let tv=S.lever*2;
+ if(S.wob>45&&tv<0)tv=0;
+ if((S.h>=28&&tv>0)||(S.h<=0&&tv<0))tv=0;
+ S.vel=mv(S.vel,tv,(Math.abs(tv)>Math.abs(S.vel)?1.5:3)*dt);
+ S.h=clamp(S.h+S.vel*dt,0,28);
+ if((S.h<=0&&S.vel<0)||(S.h>=28&&S.vel>0))S.vel=0;
+ // Top Drive -> bloco -> coluna -> broca
+ const raw=S.slips?S.bit:S.anchor-S.h,over=S.slips?0:Math.max(0,raw-S.hole);
+ if(!S.slips)S.bit=Math.min(raw,S.hole);
+ S.wob=clamp(over*30,0,60);
+ S.rop=(S.wob>1&&S.rpm>10&&S.spm>20)?0.02*S.wob*S.rpm*(1.3-S.hole/4000):0;
+ const dd=S.rop/3600*15*dt;S.hole+=dd;S.stats.drilled+=dd;
+ S.hook=60+(S.slips?0:S.bit*0.12-S.wob);
+ S.tq=S.rpm>5?3+S.wob*0.25+S.rpm/60:0;
+ // bombas -> vazão -> pressão
+ S.dens=mv(S.dens,S.densT,0.05*dt);
+ S.fin=S.spm*4.2;
+ S.spp=S.fin>0?140*Math.pow(S.fin/100,1.85)*(0.5+S.bit/2000)*(S.dens/10):0;
+ // densidade -> pressão hidrostática; influxo
+ S.hydro=0.052*S.dens*S.bit;
+ const dP=0.052*(S.pore-S.dens)*S.hole;
+ S.influx=(S.kick&&!S.bop&&!L.on)?Math.max(0,S.pore-S.dens)*12:0;
+ S.pit+=S.influx*dt/60;
+ // Leituras individuais dos tanques; A+B representam o volume ativo total.
+ S.tankA=S.pit*.48;S.tankB=S.pit*.52;S.storageTank=350;S.tripTank=40+(S.bop?0:S.influx*.015);
+ if(S.kick&&S.bop)S.casP=mv(S.casP,Math.max(0,dP),150*dt);else S.casP=mv(S.casP,0,300*dt);
+ if(S.kick&&S.dens>=S.pore+0.1&&!S.bop&&S.influx==0){S.kick=0;S.pore=8.8;S.pit0=S.pit;msg('Poço controlado: kick circulado e neutralizado')}
+ S.fout=S.bop?0:S.fin*0.98+S.influx*42;
+ S.chk=S.bop?S.casP*0.9:0;
+ S.annP=S.hydro*0.98+S.fin*0.3+S.casP;
+ // LOT
+ if(L.on){
+  if(L.pump)L.vol+=0.4*dt;else if(L.leak)L.vol=Math.max(0,L.vol-0.01*dt);
+  const k=220,pl=1700+S.hole*0.1,vl=pl/k;
+  L.p=L.vol<vl?L.vol*k:pl+(L.vol-vl)*30;
+  if(L.pump&&L.pts.length<2000)L.pts.push([L.vol,L.p]);
+  if(!L.leak&&L.vol>vl+0.12){L.leak={p:pl,vol:vl};msg('Leak-off detectado a '+pl.toFixed(0)+' psi')}
+  S.casP=L.p;
+ }
+ // conexão de tubo (roughnecks)
+ if(S.conn>0){S.conn-=dt;if(S.conn<=0){S.conn=0;S.needConn=0;S.stats.conn++;msg('Tubo conectado. Levante o Top Drive e solte as cunhas')}}
+ // alarmes
+ const a=[];
+ if(S.pit-S.pit0>5)a.push('GANHO NO TANQUE +'+(S.pit-S.pit0).toFixed(1)+' bbl');
+ if(S.spm>0&&S.fout>S.fin+25)a.push('FLOW OUT > FLOW IN');
+ if(S.spm<5&&S.fout>20)a.push('POÇO FLUINDO COM BOMBAS PARADAS');
+ if(S.spp>4000)a.push('SPP ALTA');
+ if(S.casP>3500)a.push('PRESSÃO DE CASING ALTA');
+ if(S.wob>45)a.push('WOB EXCESSIVO');
+ S.al=a;
+ if(S.msgT>0)S.msgT-=dt;
+ S.hT+=dt;if(S.hT>=0.25){S.hT=0;const H=S.hist,v={wob:S.wob,rop:S.rop,rpm:S.rpm,tq:S.tq,hook:S.hook,spp:S.spp,fin:S.fin,fout:S.fout,pit:S.pit,dens:S.dens,depth:S.bit};
+  for(const k in v){H[k].push(v[k]);if(H[k].length>120)H[k].shift()}}
+}
+function opSlips(){
+ if(S.slips){
+  if(S.needConn)return msg('Conecte o tubo antes de soltar as cunhas');
+  if(S.h<27)return msg('Levante o Top Drive até ao topo antes de soltar as cunhas');
+  S.slips=0;S.anchor=S.bit+S.h;msg('Cunhas soltas');
+ }else{
+  if(Math.abs(S.vel)>0.05||S.rpm>5)return msg('Pare a coluna e a rotação antes de assentar as cunhas');
+  S.slips=1;if(S.h<2)S.needConn=1;msg('Cunhas assentadas: coluna presa');
+ }
+}
+function opConnect(){
+ if(!S.slips||S.h>2||!S.needConn)return msg('Assente as cunhas com o Top Drive em baixo');
+ if(S.elevClosed)return msg('Abra os elevadores primeiro');
+ if(S.conn<=0)S.conn=4;
+}
+function opElev(){if(Math.abs(S.vel)>0.05)return msg('Pare o Top Drive');S.elevClosed=!S.elevClosed;msg(S.elevClosed?'Elevadores fechados':'Elevadores abertos')}
+function opKick(){if(S.kick)return;S.kick=1;S.pore=S.dens+0.8;S.stats.kicks++;msg('Atenção: influxo da formação iniciado')}
+function opBop(){S.bop=!S.bop;msg(S.bop?'BOP fechado: poço fechado':'BOP aberto')}
+function opLot(){
+ const L=S.lot;
+ if(L.on){L.on=0;L.pump=0;L.vol=0;L.p=0;L.leak=null;L.pts=[];return msg('LOT terminado')}
+ if(S.spm>1||S.rpm>1)return msg('Pare bombas e rotação para o LOT');
+ L.on=1;L.vol=0;L.leak=null;L.pts=[];msg('LOT iniciado: mantenha "Bombear" premido');
+}
+function opLotRecord(){const L=S.lot;if(!L.on||!L.leak)return msg('Ainda sem leak-off detectado');
+ L.res.push({p:L.leak.p,vol:L.leak.vol,emw:S.dens+L.leak.p/(0.052*800)});msg('Resultado LOT registado')}
+
+</script>
+<script>
+// Interface: painel do Driller, manómetros, gráficos, poço, LOT, conta Supabase.
+const $=id=>document.getElementById(id);
+function openPanel(){panelOpen=true;$('panel').hidden=false}
+function closePanel(){panelOpen=false;$('panel').hidden=true;S.lever=0;lvSet(0)}
+$('pX').onclick=closePanel;
+const tg=(b,on,t)=>{b.classList.toggle('on',!!on);b.textContent=t};
+$('bPump').onclick=()=>{S.pumpOn=S.pumpOn?0:1};
+$('sSpm').oninput=e=>{S.spmT=+e.target.value;$('vSpm').textContent=e.target.value};
+$('bRot').onclick=()=>{if(S.slips)return msg('Cunhas ativas: não pode rodar');if(S.spm<20)return msg('Ligue as bombas antes de rodar');S.rotOn=S.rotOn?0:1};
+$('sRpm').oninput=e=>{S.rpmT=+e.target.value;$('vRpm').textContent=e.target.value};
+$('bSlips').onclick=opSlips;$('bElev').onclick=opElev;$('bConn').onclick=opConnect;
+$('sDens').oninput=e=>{S.densT=+e.target.value;$('vDens').textContent=(+e.target.value).toFixed(2)};
+$('bKick').onclick=opKick;$('bBop').onclick=opBop;$('bLot').onclick=opLot;$('bLotR').onclick=opLotRecord;
+const lp=$('bLotP');lp.onpointerdown=()=>S.lot.pump=1;lp.onpointerup=lp.onpointerleave=()=>S.lot.pump=0;
+// alavanca física (mola: volta ao neutro ao largar)
+const tr=$('track'),hd=$('handle');let dragLv=false;
+function lvSet(v){S.lever=Math.abs(v)<.08?0:v;hd.style.top=(80-v*80)+'px'}
+function lvMove(e){const r=tr.getBoundingClientRect();lvSet(clamp(((r.top+r.height/2)-e.clientY)/(r.height/2-15),-1,1))}
+tr.onpointerdown=e=>{dragLv=true;tr.setPointerCapture(e.pointerId);lvMove(e)};tr.onpointermove=e=>{if(dragLv)lvMove(e)};
+tr.onpointerup=tr.onpointercancel=()=>{dragLv=false;lvSet(0)};
+// manómetros e gráficos
+function gauge(g,x,y,r,v,max,name,unit){g.save();g.translate(x,y);g.strokeStyle='#345';g.lineWidth=8;g.beginPath();g.arc(0,0,r,.75*Math.PI,2.25*Math.PI);g.stroke();
+ const f=clamp(v/max,0,1);g.strokeStyle=f>.85?'#e33':f>.65?'#ec3':'#3c6';g.beginPath();g.arc(0,0,r,.75*Math.PI,(.75+1.5*f)*Math.PI);g.stroke();
+ g.rotate((.75+1.5*f)*Math.PI);g.strokeStyle='#fff';g.lineWidth=3;g.beginPath();g.moveTo(0,0);g.lineTo(r-6,0);g.stroke();g.rotate(-(.75+1.5*f)*Math.PI);
+ g.fillStyle='#fff';g.textAlign='center';g.font='12px sans-serif';g.fillText(name,0,r+14);g.font='bold 14px monospace';g.fillText(v.toFixed(0)+' '+unit,0,18);g.restore()}
+function chart(g,x,y,w,h,series,title){g.save();g.translate(x,y);g.strokeStyle='#345';g.strokeRect(0,0,w,h);g.fillStyle='#9bd';g.font='11px sans-serif';g.fillText(title,4,12);
+ let lo=1e9,hi=-1e9;series.forEach(s=>s.d.forEach(v=>{lo=Math.min(lo,v);hi=Math.max(hi,v)}));if(hi-lo<1e-6){hi+=1;lo-=1}
+ series.forEach(s=>{g.strokeStyle=s.c;g.beginPath();s.d.forEach((v,i)=>{const px=i/119*w,py=h-4-(v-lo)/(hi-lo)*(h-22);i?g.lineTo(px,py):g.moveTo(px,py)});g.stroke()});
+ g.fillStyle='#fff';g.textAlign='right';const l=series[0].d;g.fillText(l.length?l[l.length-1].toFixed(1):'',w-4,12);g.restore()}
+const cg=$('cG').getContext('2d'),cw=$('cW').getContext('2d'),ch=$('cH').getContext('2d'),cl=$('cL').getContext('2d');
+function well(){const g=cw,W=260,H=440;g.clearRect(0,0,W,H);const mx=Math.max(1800,S.hole+100),sy=d=>20+d/mx*(H-30);
+ [[0,400,'#c9b26b'],[400,900,'#7b6a58'],[900,1300,'#a9a9a0'],[1300,1800,'#b08a5a'],[1800,9999,'#6a5a4a']].forEach(l=>{g.fillStyle=l[2];g.fillRect(0,sy(l[0]),W,sy(Math.min(l[1],mx))-sy(l[0]))});
+ g.fillStyle='#3a2a18';g.fillRect(100,20,50,sy(S.hole)-20);g.fillStyle='#8c8c8c';g.fillRect(96,20,4,sy(800)-20);g.fillRect(150,20,4,sy(800)-20);
+ g.fillStyle='#222';g.fillRect(122,20,6,sy(S.bit)-20);g.fillStyle='#e33';g.beginPath();g.moveTo(118,sy(S.bit));g.lineTo(132,sy(S.bit));g.lineTo(125,sy(S.bit)+8);g.fill();
+ if(S.fin>0){g.fillStyle='#fc4';const o=(S.t*40)%20;for(let y=20+o;y<sy(S.bit);y+=20){g.fillRect(124,y,2,6)}for(let y=sy(S.bit)-o;y>20;y-=20){g.fillRect(106,y,2,6);g.fillRect(140,y,2,6)}}
+ if(S.influx>0||S.bop&&S.kick){g.fillStyle='#f33';for(let i=0;i<6;i++)g.fillRect(104+(i*8),sy(S.hole)-((S.t*30+i*20)%60),5,5)}
+ g.fillStyle='#fff';g.font='11px sans-serif';g.fillText('Broca '+S.bit.toFixed(0)+' m',160,sy(S.bit));g.fillText('Fundo '+S.hole.toFixed(0)+' m',160,sy(S.hole)+14);g.fillText('Sapata 800 m',160,sy(800));g.fillText(S.bop?'BOP FECHADO':'Mud level: cheio',4,14)}
+let acc=0;
+function hudUpdate(){const dt=.016;
+ $('hud').textContent=`Prof. broca ${S.bit.toFixed(1)} m | Fundo ${S.hole.toFixed(1)} m\nROP ${S.rop.toFixed(0)} m/h  WOB ${S.wob.toFixed(0)} klb  RPM ${S.rpm.toFixed(0)}\nSPM ${S.spm.toFixed(0)}  SPP ${S.spp.toFixed(0)} psi`;
+ const ab=$('alarmbar');ab.style.display=S.al.length?'block':'none';ab.textContent=S.al.join('  |  ');
+ const t=$('toast');t.style.display=S.msgT>0?'block':'none';t.textContent=S.msg;
+ if(!panelOpen)return;
+ tg($('bPump'),S.pumpOn,'Bomba: '+(S.pumpOn?'ON':'OFF'));tg($('bRot'),S.rotOn,'Rotação: '+(S.rotOn?'ON':'OFF'));
+ tg($('bSlips'),S.slips,'Cunhas: '+(S.slips?'ASSENTADAS':'SOLTAS'));tg($('bElev'),!S.elevClosed,'Elevadores: '+(S.elevClosed?'FECHADOS':'ABERTOS'));
+ tg($('bBop'),S.bop,'BOP: '+(S.bop?'FECHADO':'ABERTO'));$('bLot').textContent=S.lot.on?'Terminar LOT':'Iniciar LOT';
+ $('bKick').classList.toggle('bad',!!S.kick);$('pAl').textContent=S.al[0]||(S.conn>0?'A conectar tubo…':'Operação normal');
+ $('lvPos').textContent=(S.lever*100).toFixed(0)+'%';$('lvVel').textContent=S.vel.toFixed(2);$('lvH').textContent=S.h.toFixed(1);
+ $('lvInfo').firstChild.textContent=Math.abs(S.vel)<.02?'Neutro':S.vel>0?'A SUBIR':'A DESCER';
+ $('dir').textContent='Sentido: horário '+(S.rpm>1?'(a rodar)':'(parado)')+' · Torque '+S.tq.toFixed(1)+' kft-lb';
+ const L=S.lot;$('lotRes').innerHTML=(L.on?`LOT: ${L.p.toFixed(0)} psi · ${L.vol.toFixed(2)} bbl${L.leak?' · LEAK-OFF':''}<br>`:'')+L.res.map((r,i)=>`#${i+1}: ${r.p.toFixed(0)} psi, ${r.vol.toFixed(2)} bbl, EMW ${r.emw.toFixed(2)} ppg`).join('<br>');
+ acc+=dt;
+ cg.clearRect(0,0,560,270);const gs=[[S.spp,5000,'SPP','psi'],[S.casP,5000,'Casing','psi'],[S.chk,5000,'Choke','psi'],[S.spp*1.03,5000,'Bomba','psi'],[S.annP,6000,'Anular','psi'],[S.fin,800,'Flow In','gpm'],[S.fout,800,'Flow Out','gpm'],[S.pit,800,'Tanques','bbl']];
+ gs.forEach((a,i)=>gauge(cg,70+(i%4)*140,70+Math.floor(i/4)*125,42,a[0],a[1],a[2],a[3]));
+ const D=[['WOB',S.wob,'klb'],['ROP',S.rop,'m/h'],['RPM',S.rpm,''],['Torque',S.tq,'kft-lb'],['Hook Load',S.hook,'klb'],['SPP',S.spp,'psi'],['Flow In',S.fin,'gpm'],['Flow Out',S.fout,'gpm'],['Pit Vol',S.pit,'bbl'],['Prof. medida',S.hole,'m'],['Prof. broca',S.bit,'m'],['SPM',S.spm,''],['Densidade',S.dens,'ppg'],['Hidrostática',S.hydro,'psi'],['Casing',S.casP,'psi'],['Choke',S.chk,'psi'],['Anular',S.annP,'psi'],['Tanque ativo A',S.tankA,'bbl'],['Tanque ativo B',S.tankB,'bbl'],['Armazenamento',S.storageTank,'bbl'],['Trip tank',S.tripTank,'bbl'],['Retorno',S.fout,'gpm'],['Influxo',S.influx,'bbl/min']];
+ $('dig').innerHTML=D.map(d=>`<div>${d[0]}<b>${d[1].toFixed(d[0]=='Densidade'?2:0)}</b>${d[2]}</div>`).join('');
+ well();
+ const H=S.hist;ch.clearRect(0,0,520,640);const cs=[[[{d:H.wob,c:'#6f6'}],'WOB (klb)'],[[{d:H.rop,c:'#6cf'}],'ROP (m/h)'],[[{d:H.rpm,c:'#fc6'}],'RPM'],[[{d:H.tq,c:'#f6c'}],'Torque'],[[{d:H.hook,c:'#9f9'}],'Hook Load'],[[{d:H.spp,c:'#f96'}],'SPP (psi)'],[[{d:H.fin,c:'#6cf'},{d:H.fout,c:'#f66'}],'Flow In/Out'],[[{d:H.pit,c:'#fc4'}],'Pit Volume'],[[{d:H.dens,c:'#c9f'}],'Densidade'],[[{d:H.depth,c:'#fff'}],'Profundidade x tempo']];
+ cs.forEach((c,i)=>chart(ch,(i%2)*262,Math.floor(i/2)*128,254,120,c[0],c[1]));
+ cl.clearRect(0,0,520,220);cl.strokeStyle='#345';cl.strokeRect(0,0,520,220);cl.fillStyle='#9bd';cl.font='12px sans-serif';cl.fillText('LOT: Pressão (psi) x Volume injetado (bbl)',6,14);
+ cl.strokeStyle='#fc4';cl.beginPath();L.pts.forEach((p,i)=>{const x=p[0]/4*500+10,y=210-p[1]/2500*190;i?cl.lineTo(x,y):cl.moveTo(x,y)});cl.stroke();
+ if(L.leak){cl.fillStyle='#f55';cl.beginPath();cl.arc(L.leak.vol/4*500+10,210-L.leak.p/2500*190,5,0,7);cl.fill()}}
+// alarme sonoro
+let ac=null,lastB=0;
+function alarmSound(t){if(t-lastB<.6)return;lastB=t;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=880;g.gain.value=.08;o.connect(g);g.connect(ac.destination);o.start();o.stop(ac.currentTime+.25)}catch(e){}}
+// Supabase (opcional)
+let sb=null,uid=null;const am=t=>$('aMsg').textContent=t;
+if(window.supabase&&window.SB&&SB.url&&!SB.url.includes('SEU')){sb=supabase.createClient(SB.url,SB.key)}
+$('btnAcc').onclick=()=>$('acct').hidden=!$('acct').hidden;$('aX').onclick=()=>$('acct').hidden=true;
+async function load(){const{data}=await sb.from('progress').select('*').eq('user_id',uid).maybeSingle();
+ if(data){S.hole=data.hole;S.bit=Math.min(data.bit,data.hole);S.anchor=S.bit+S.h;Object.assign(S.stats,data.stats||{});if(data.settings&&data.settings.dens){S.dens=S.densT=data.settings.dens}am('Progresso carregado')}}
+async function save(){if(!sb||!uid)return;const{error}=await sb.from('progress').upsert({user_id:uid,hole:S.hole,bit:S.bit,stats:S.stats,settings:{dens:S.densT},updated_at:new Date().toISOString()});am(error?error.message:'Guardado')}
+async function auth(up){if(!sb)return am('Configure js/config.js com a URL e a chave do Supabase');
+ const f=up?sb.auth.signUp:sb.auth.signInWithPassword;const{data,error}=await f.call(sb.auth,{email:$('em').value,password:$('pw').value});
+ if(error)return am(error.message);uid=data.user&&data.user.id;if(uid&&data.session){am('Sessão iniciada');load()}else am('Verifique o email para confirmar')}
+$('aIn').onclick=()=>auth(0);$('aUp').onclick=()=>auth(1);$('aSave').onclick=save;$('aOut').onclick=async()=>{if(sb)await sb.auth.signOut();uid=null;am('Sessão terminada')};
+setInterval(save,60000);addEventListener('pagehide',save);
+
+</script>
+<script>
+// Mundo 3D, jogador, câmara, interações. Tudo lê o estado S do motor.
+const cv=document.getElementById('c'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});
+R.setPixelRatio(Math.min(devicePixelRatio,1.75));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.22;
+R.physicallyCorrectLights=true;
+const sc=new THREE.Scene();sc.background=new THREE.Color(0x8da9bd);sc.fog=new THREE.Fog(0x8da9bd,75,280);
+const cam=new THREE.PerspectiveCamera(62,1,.1,500);
+sc.add(new THREE.HemisphereLight(0xdcecff,0x34404a,1.05));
+const fill=new THREE.DirectionalLight(0x91b9d8,.28);fill.position.set(-35,18,-25);sc.add(fill);
+const sun=new THREE.DirectionalLight(0xffe3bd,1.45);sun.position.set(30,50,20);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-42,right:42,top:42,bottom:-42,far:150});sun.shadow.bias=-0.00025;sc.add(sun);
+// Sol e ambiente atmosférico para dar profundidade ao horizonte offshore.
+const sunBall=new THREE.Mesh(new THREE.SphereGeometry(7,20,16),new THREE.MeshBasicMaterial({color:0xffe1ae}));sunBall.position.set(-95,75,-150);sc.add(sunBall);
+const quality=document.getElementById('quality');
+function setQuality(level){const q=level||'high',dpr=Math.min(devicePixelRatio,q==='high'?1.75:q==='medium'?1.35:1);R.setPixelRatio(dpr);R.shadowMap.enabled=q!=='low';sun.shadow.mapSize.setScalar(q==='high'?2048:q==='medium'?1024:512);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}R.shadowMap.needsUpdate=true;R.setSize(innerWidth,innerHeight,false);R.toneMappingExposure=q==='high'?1.22:q==='medium'?1.15:1.08;sc.fog.near=q==='high'?75:55;sc.fog.far=q==='high'?280:q==='medium'?230:190;}
+const initialQuality=(matchMedia('(max-width: 700px)').matches||(navigator.deviceMemory&&navigator.deviceMemory<=4))?'medium':'high';
+if(quality){quality.value=initialQuality;quality.addEventListener('change',e=>setQuality(e.target.value))}
+const rk=document.createElement('canvas');rk.width=rk.height=256;{const g=rk.getContext('2d');g.fillStyle='#d6d6d2';g.fillRect(0,0,256,256);
+ for(let i=0;i<2500;i++){const x=Math.random()*256,y=Math.random()*256,a=Math.random()*.25;g.fillStyle=Math.random()<.5?`rgba(120,62,24,${a})`:`rgba(30,30,30,${a})`;g.fillRect(x,y,1+Math.random()*5,1+Math.random()*5)}
+ for(let i=0;i<40;i++){const x=Math.random()*256,y=Math.random()*200,l=20+Math.random()*50,gr=g.createLinearGradient(0,y,0,y+l);gr.addColorStop(0,'rgba(110,55,20,.35)');gr.addColorStop(1,'rgba(110,55,20,0)');g.fillStyle=gr;g.fillRect(x,y,2+Math.random()*3,l)}}
+const RM=new THREE.CanvasTexture(rk);RM.wrapS=RM.wrapT=THREE.RepeatWrapping;RM.repeat.set(2,2);RM.anisotropy=4;
+const M=(c,e)=>new THREE.MeshStandardMaterial({color:c,roughness:.75,metalness:.35,emissive:e||0,map:RM,bumpMap:RM,bumpScale:1.2});
+const solids=[],C=[];
+function box(w,h,d,c,x,y,z,p,solid){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c));m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;(p||sc).add(m);if(solid)solids.push(m);return m}
+function cyl(r,h,c,x,y,z,p,seg){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg||12),M(c));m.position.set(x,y,z);m.castShadow=true;(p||sc).add(m);return m}
+function col(x0,x1,z0,z1,on){C.push({x0,x1,z0,z1,on:on||(()=>1)})}
+function label(t,x,y,z){const k=document.createElement('canvas');k.width=256;k.height=64;const g=k.getContext('2d');g.fillStyle='rgba(0,0,0,.6)';g.fillRect(0,0,256,64);g.fillStyle='#ffd24a';g.font='bold 28px sans-serif';g.textAlign='center';g.fillText(t,128,42);
+ const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(k),depthTest:false}));s.position.set(x,y,z);s.scale.set(5,1.25,1);sc.add(s)}
+// mar
+const seaG=new THREE.PlaneGeometry(500,500,80,80);seaG.rotateX(-Math.PI/2);const sea=new THREE.Mesh(seaG,new THREE.MeshStandardMaterial({color:0x24556d,roughness:.22,metalness:.18,transparent:true,opacity:.96}));sea.position.y=-12;sea.receiveShadow=true;sc.add(sea);
+// plataforma
+const gk=document.createElement('canvas');gk.width=gk.height=64;{const g=gk.getContext('2d');g.fillStyle='#1c1f22';g.fillRect(0,0,64,64);g.strokeStyle='#4a5056';g.lineWidth=3;for(let i=0;i<64;i+=8){g.beginPath();g.moveTo(i,0);g.lineTo(i,64);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(64,i);g.stroke()}}
+const gt=new THREE.CanvasTexture(gk);gt.wrapS=gt.wrapT=THREE.RepeatWrapping;gt.repeat.set(42,42);
+const deck=box(42,1,42,0x777777,0,-.5,0);deck.material=new THREE.MeshStandardMaterial({map:gt,roughness:.9,metalness:.5});
+[-20.9,20.9].forEach(v=>{[1.1,.55].forEach(y=>{box(42,.1,.1,0xd9a800,0,y,v);box(.1,.1,42,0xd9a800,v,y,0)})});
+[[-18,-18],[18,-18],[-18,18],[18,18]].forEach(p=>cyl(1.2,16,0xc9a227,p[0],-8,p[1],0,10));
+// derrick
+[[-3.5,-3.5],[3.5,-3.5],[-3.5,3.5],[3.5,3.5]].forEach(p=>{cyl(.25,36,0x6e5b46,p[0],18,p[1]);col(p[0]-.4,p[0]+.4,p[1]-.4,p[1]+.4)});
+for(let y=4;y<36;y+=8){box(7,.2,.2,0x6e5b46,0,y,-3.5);box(7,.2,.2,0x6e5b46,0,y,3.5);box(.2,.2,7,0x6e5b46,-3.5,y,0);box(.2,.2,7,0x6e5b46,3.5,y,0)}
+box(8,1,8,0x555a60,0,36.5,0);
+box(.2,32,.2,0xaaaaaa,-.8,17,-1.6);box(.2,32,.2,0xaaaaaa,.8,17,-1.6);
+box(2.4,.8,2.4,0x333333,0,.4,0);cyl(.5,.1,0x111111,0,.85,0);label('MESA ROTATIVA',0,3.4,2);
+// Top Drive + bloco
+const td=new THREE.Group();sc.add(td);
+box(1.4,1.6,1,0xe8c01a,0,1,0,td);const tdRot=cyl(.35,.9,0x444444,0,0,0,td,8);box(1.2,1.2,.8,0x2b4c7e,0,-1.6+1,0,td).position.y=-.3+1.9-.9-.9;
+const hook=cyl(.15,.8,0xdd2222,0,2.2,0,td);
+const pipe=cyl(.12,1,0x9aa0a6,0,0,0),cabL=cyl(.04,1,0x222222,-.5,0,-.8),cabR=cyl(.04,1,0x222222,.5,0,-.8);
+// Detalhes de produção: passadiços, guarda-corpos, tubagens, luzes e marcações de segurança.
+const metalMat=new THREE.MeshStandardMaterial({color:0x667783,metalness:.78,roughness:.34});
+const yellowMat=new THREE.MeshStandardMaterial({color:0xf0b323,metalness:.38,roughness:.55});
+// Contraventamento diagonal do mastro: estrutura treliçada em vez de simples postes.
+function brace(ax,ay,az,bx,by,bz,r=.065,mat=metalMat){const a=new THREE.Vector3(ax,ay,az),b=new THREE.Vector3(bx,by,bz),dir=new THREE.Vector3().subVectors(b,a),len=dir.length();const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,8),mat);m.position.copy(a).add(b).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.normalize());m.castShadow=true;m.receiveShadow=true;sc.add(m)}
+for(let y=4;y<32;y+=8){const y2=y+8;for(const x of [-3.5,3.5]){brace(x,y,-3.5,x,y2,3.5,.075,metalMat);brace(x,y,3.5,x,y2,-3.5,.075,metalMat)}for(const z of [-3.5,3.5]){brace(-3.5,y,z,3.5,y2,z,.075,metalMat);brace(3.5,y,z,-3.5,y2,z,.075,metalMat)}}
+// Nuvens leves no horizonte para reforçar a escala e profundidade offshore.
+for(let i=0;i<9;i++){const cloud=new THREE.Group();const cx=-120+i*31,cy=48+(i%3)*13,cz=-155-(i%4)*22;for(let j=0;j<5;j++){const puff=new THREE.Mesh(new THREE.SphereGeometry(5+(j%2)*2,12,10),new THREE.MeshStandardMaterial({color:0xd5e0e7,roughness:1,transparent:true,opacity:.48}));puff.position.set((j-2)*5,Math.sin(j*1.4)*2,Math.cos(j)*3);cloud.add(puff)}cloud.position.set(cx,cy,cz);sc.add(cloud)}
+function rail(x1,z1,x2,z2,y=1.15){const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz),ang=Math.atan2(dz,dx);for(let x=0;x<=len;x+=2.5){const px=x1+Math.cos(ang)*x,pz=z1+Math.sin(ang)*x;const post=new THREE.Mesh(new THREE.CylinderGeometry(.045,.055,1.15,8),metalMat);post.position.set(px,y-.05,pz);post.castShadow=true;sc.add(post)}for(const yy of [y-.38,y+.18]){const bar=new THREE.Mesh(new THREE.BoxGeometry(len,.065,.065),yellowMat);bar.position.set((x1+x2)/2,yy,(z1+z2)/2);bar.rotation.y=-ang;bar.castShadow=true;sc.add(bar)}}
+rail(-19,-19,19,-19);rail(-19,19,19,19);rail(-19,-19,-19,19);rail(19,-19,19,19);
+// Tubagens industriais paralelas ao convés.
+for(let i=0;i<4;i++){const t=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,29,12),metalMat);t.rotation.z=Math.PI/2;t.position.set(0,.35+i*.23,-13+i*.55);t.castShadow=true;sc.add(t);for(let x=-13;x<=13;x+=6){const saddle=box(.18,.35,.25,0x4b5962,x,.12+i*.23,-13+i*.55);saddle.material=metalMat}}
+// Faixas de segurança junto à mesa rotativa.
+for(let i=0;i<12;i++){const stripe=box(.55,.025,.13,i%2?0x171c20:0xf4c02d,Math.cos(i*Math.PI/6)*2.0,.025,Math.sin(i*Math.PI/6)*2.0);stripe.rotation.y=i*Math.PI/6}
+// Projectores industriais no perímetro e nos níveis superiores.
+const workLights=[];[[-18,7,-18],[18,7,-18],[-18,7,18],[18,7,18],[0,34,0]].forEach((p,i)=>{const pole=cyl(.09,5,0x59636a,p[0],p[1]-2.5,p[2],0,10);const lamp=box(.65,.28,.35,0xffe6a3,p[0],p[1],p[2]);lamp.material=new THREE.MeshStandardMaterial({color:0xffe2a0,emissive:0xffbd55,emissiveIntensity:1.8});const light=new THREE.PointLight(0xffd99a,.55,22);light.position.set(p[0],p[1]-.2,p[2]);sc.add(light);workLights.push(light)});
+// Pequeno guindaste de apoio no convés.
+const craneBase=box(2.8,.6,2.8,0x39434a,16,.3,14);const craneMast=box(.5,7,.5,0xe5a91c,16,4,14);const craneArm=box(8,.35,.45,0xe5a91c,12,7.3,14);const craneCable=cyl(.035,3,0x242a30,9,5.6,14,0,8);const craneHook=cyl(.12,.35,0xc52e27,9,4,14,0,8);
+// Expansão do convés: módulos de processo, contentores, passadiços e escadas de acesso.
+const containerMat=new THREE.MeshStandardMaterial({color:0x34556a,metalness:.55,roughness:.68});
+function container(x,z,color=0x34556a){const g=new THREE.Group();g.position.set(x,.0,z);sc.add(g);const body=new THREE.Mesh(new THREE.BoxGeometry(4.8,2.7,2.6),new THREE.MeshStandardMaterial({color,metalness:.42,roughness:.72}));body.position.y=1.35;body.castShadow=body.receiveShadow=true;g.add(body);for(let i=-2;i<=2;i++){const rib=new THREE.Mesh(new THREE.BoxGeometry(.055,2.55,.08),metalMat);rib.position.set(i*.85,1.35,1.34);g.add(rib);const rib2=rib.clone();rib2.position.z=-1.34;g.add(rib2)}const roof=new THREE.Mesh(new THREE.BoxGeometry(4.9,.12,2.7),metalMat);roof.position.y=2.73;g.add(roof);box(1.1,1.9,.08,0x1c2d39,x+1.45,1.0,z+1.34);col(x-2.5,x+2.5,z-1.4,z+1.4);return g}
+container(-16,14,0x344d5b);container(-9,14,0x59616a);container(7,14,0x405b4d);
+// Módulo de geração e manifold de processo, com válvulas identificáveis.
+box(5,2.2,3.4,0x35434c,-16,1.1,8,0,1);label('GERADORES',-16,2.8,8);
+for(let i=0;i<4;i++){const v=cyl(.32,.18,0xc48a26,-17.5+i,2.35,5.8,0,12);v.rotation.x=Math.PI/2;const stem=cyl(.06,.55,0x87949b,-17.5+i,2.65,5.8,0,8);}
+// Escada industrial com patamares e corrimãos no lado leste.
+for(let i=0;i<10;i++){const step=box(2.2,.16,.42,0x77838a,18.1,i*.28+.12,3.2-i*.42);step.material=metalMat}
+rail(17,3.4,19, -1.0,1.05);
+// Passadiço elevado ligando o Doghouse ao convés de processo.
+box(7,.22,1.8,0x65737c,14,1.25,-1.2);rail(10.5,-2.1,17.5,-2.1,1.8);rail(10.5,-.3,17.5,-.3,1.8);
+// doghouse (14,-8)
+const dh=[box(8,4,.3,0x9aa396,14,2,-11,0,1),box(.3,4,6,0x9aa396,10,2,-8,0,1),box(.3,4,6,0x9aa396,18,2,-8,0,1),
+ box(3,4,.3,0x9aa396,11.5,2,-5,0,1),box(3,4,.3,0x9aa396,16.5,2,-5,0,1),box(8.4,.3,6.4,0x6f786d,14,4.1,-8,0,1)];
+col(10.9,17.1,-11.2,-10.8);col(9.8,10.2,-11,-5);col(17.8,18.2,-11,-5);col(10,13,-5.2,-4.8);col(15,18,-5.2,-4.8);
+const doorP=new THREE.Group();doorP.position.set(13,0,-5);sc.add(doorP);const door=box(2,3.4,.2,0x8a5a2a,1,1.7,0,doorP,1);col(13,15,-5.3,-4.7,()=>doorA<.8);
+const panelM=box(3,1.2,.8,0x222a33,14,.6,-10.4);box(2.6,.8,.1,0x00ff88,14,1.5,-10.1).material=M(0x003322,0x00aa55);col(12.4,15.6,-10.9,-9.9);
+const scr=panelM;const dhLight=new THREE.PointLight(0xffffff,1.15,14);dhLight.position.set(14,3.4,-8);sc.add(dhLight);
+// Interior do Doghouse: consola, três monitores, cadeira e iluminação de tarefa.
+const desk=box(4.6,.18,1.1,0x26343d,14,.95,-9.3);desk.material=metalMat;
+const liveScreens=[];
+for(let i=0;i<3;i++){const mon=box(1.05,.78,.12,0x101b24,12.55+i*1.42,2.05,-10.25);mon.material=new THREE.MeshStandardMaterial({color:0x06131c,emissive:0x09283c,emissiveIntensity:1.2,metalness:.25,roughness:.2});const face=document.createElement('canvas');face.width=512;face.height=320;const fg=face.getContext('2d');fg.fillStyle='#06131c';fg.fillRect(0,0,512,320);const tex=new THREE.CanvasTexture(face);const screen=new THREE.Mesh(new THREE.PlaneGeometry(.98,.7),new THREE.MeshBasicMaterial({map:tex}));screen.position.set(12.55+i*1.42,2.05,-10.17);sc.add(screen);liveScreens.push({face,fg,tex,i});}
+const chairBase=cyl(.09,.8,0x4a5963,14,.42,-8.5);const chairSeat=box(.9,.16,.85,0x1d2932,14,.85,-8.5);const chairBack=box(.9,1,.16,0x273844,14,1.38,-8.9);
+// Comandos físicos no console: manete do Top Drive, botão de emergência e manómetros.
+const cabinLever=new THREE.Group();cabinLever.position.set(12.4,1.12,-8.95);sc.add(cabinLever);
+const leverBase=cyl(.2,.12,0x697985,0,0,0,cabinLever,16);leverBase.rotation.x=Math.PI/2;
+const leverRod=cyl(.045,.78,0xb8c3c9,0,.38,0,cabinLever,10);leverRod.rotation.z=-.25;
+const leverGrip=new THREE.Mesh(new THREE.SphereGeometry(.13,14,12),new THREE.MeshStandardMaterial({color:0xd83d35,metalness:.25,roughness:.3}));leverGrip.position.set(.18,.76,0);cabinLever.add(leverGrip);
+const emergency=box(.22,.16,.22,0xd3262f,15.4,1.2,-8.95);emergency.material.emissive.setHex(0x661010);label('E-STOP',15.4,1.8,-8.95);
+for(let i=0;i<4;i++){const gauge=cyl(.22,.07,0x182b37,13.1+i*.72,1.45,-10.02,0,20);gauge.rotation.x=Math.PI/2;const needle=box(.018,.22,.025,0xf2c45c,13.1+i*.72,1.46,-9.96);needle.rotation.z=(i-1.5)*.15;}
+label('ENTER DOGHOUSE',14,4.7,-4.8);
+[[12,-4.82,1.6,.05],[17,-4.82,1.6,.05]].forEach(w=>box(w[2],1.2,w[3],0x141c22,w[0],2.6,w[1]).material.emissive.setHex(0x0a1218));
+box(.05,1.2,1.6,0x141c22,18.17,2.6,-8).material.emissive.setHex(0x0a1218);box(.05,1.2,1.6,0x141c22,9.83,2.6,-8).material.emissive.setHex(0x0a1218);
+// tanques de lama e equipamento
+const liq=[];
+[[-15,-15,'TANQUE ATIVO A'],[-15,-9,'TANQUE ATIVO B'],[-6,-17.5,'TANQUE ARMAZ.']].forEach((t,i)=>{
+ box(6,2.4,4,0x7a7f85,t[0],1.2,t[1],0,1);col(t[0]-3,t[0]+3,t[1]-2,t[1]+2);
+ const l=box(5.6,2,3.6,0x7a5a2e,t[0],1.3,t[1]);liq.push(l);label(t[2],t[0],3.8,t[1])});
+box(2.5,1.6,1.6,0x444b52,-8,.8,-10,0,1);box(2.5,1.6,1.6,0x444b52,-5,.8,-10,0,1);col(-9.3,-3.7,-10.9,-9.1);label('BOMBAS DE LAMA',-6.5,2.8,-10);
+box(3,1.5,2.5,0x6a7078,5,.75,-17,0,1);cyl(.9,3,0x8a6d3b,9,1.5,-17);cyl(.9,3,0x8a6d3b,12,1.5,-17);cyl(.9,3,0x8a6d3b,15,1.5,-17);col(3.5,16,-18.3,-15.7);
+label('PENEIRAS',5,2.8,-17);label('DEGASSER',9,3.8,-17);label('DESANDER',12,3.8,-17);label('DESILTER',15,3.8,-17);
+box(2.5,1.2,2.5,0x4d6b3a,0,.6,-17,0,1);col(-1.4,1.4,-18.3,-15.7);label('TRATAMENTO DE LAMA',0,2.4,-17);
+// Trip tank dedicado com nível visual independente.
+box(3.4,2.2,3.2,0x737e86,-15,1.1,-2.8,0,1);const tripLiq=box(3.05,1.9,2.85,0x82622f,-15,1.12,-2.8);tripLiq.material=new THREE.MeshStandardMaterial({color:0x9a7138,roughness:.3,metalness:.12,transparent:true,opacity:.82});label('TRIP TANK',-15,3.2,-2.8);
+// mezanino com escadas
+for(let i=0;i<12;i++)box(2.5,.25,.34,0x888888,-14,i*.25+.1,2.17+i*.333);
+box(8,3,8,0x555a60,-14,1.5,10,0,1);col(-18,-10,6,14,()=>P.y<2.4);box(8,.2,8,0x6e5b46,-14,3.05,10);label('MEZANINO / ESCADAS',-14,5,10);
+const gh=(x,z)=>(x>-15.3&&x<-12.7&&z>2&&z<6)?(z-2)/4*3:(x>-18&&x<-10&&z>6&&z<14)?3:0;
+// monkey board + workers
+box(3,.3,2,0x666666,0,22,-3);
+function human(coat,hat,skin){
+ const mt=(c,r,m)=>new THREE.MeshStandardMaterial({color:c,roughness:r||.85,metalness:m||0}),g=new THREE.Group(),
+ sh=(geo,mat,x,y,z,p)=>{const o=new THREE.Mesh(geo,mat);o.position.set(x,y,z);o.castShadow=true;p.add(o);return o},
+ cm=mt(coat),sk=mt(skin,.6),dk=mt(0x1b1d20,.7),rf=mt(0xdcdcd0,.35,.3),cy=(a,b,h)=>new THREE.CylinderGeometry(a,b,h,12),sp=r=>new THREE.SphereGeometry(r,12,10);
+ const hips=new THREE.Group();hips.position.y=.95;g.add(hips);sh(cy(.2,.19,.22),cm,0,.02,0,hips).scale.z=.7;
+ const ch=new THREE.Group();ch.position.y=.05;hips.add(ch);
+ sh(cy(.26,.2,.52),cm,0,.27,0,ch).scale.z=.65;sh(cy(.222,.222,.05),rf,0,.15,0,ch).scale.z=.66;sh(cy(.24,.24,.05),rf,0,.3,0,ch).scale.z=.66;
+ sh(cy(.06,.065,.1),sk,0,.57,0,ch);
+ const hd=new THREE.Group();hd.position.y=.68;ch.add(hd);sh(sp(.12),sk,0,0,0,hd).scale.set(.9,1.1,1);
+ [-1,1].forEach(x=>{sh(sp(.015),dk,x*.045,.02,.105,hd);sh(sp(.03),sk,x*.115,0,0,hd)});sh(sp(.022),sk,0,-.015,.12,hd);
+ sh(new THREE.BoxGeometry(.2,.035,.02),mt(0x223344,.2,.5),0,.025,.116,hd);
+ sh(new THREE.SphereGeometry(.145,14,8,0,6.29,0,1.57),mt(hat,.45),0,.035,0,hd);sh(cy(.17,.17,.015),mt(hat,.45),0,.035,0,hd);sh(new THREE.BoxGeometry(.15,.012,.07),mt(hat,.45),0,.035,.15,hd);
+ const arm=s=>{const a=new THREE.Group();a.position.set(s*.31,.47,0);ch.add(a);sh(sp(.085),cm,0,0,0,a);sh(cy(.07,.06,.3),cm,0,-.15,0,a);const e=new THREE.Group();e.position.y=-.3;a.add(e);sh(cy(.06,.05,.27),cm,0,-.135,0,e);sh(sp(.065),dk,0,-.3,0,e);return[a,e]};
+ const leg=s=>{const l=new THREE.Group();l.position.set(s*.1,-.08,0);hips.add(l);sh(cy(.09,.075,.42),cm,0,-.21,0,l);const k=new THREE.Group();k.position.y=-.42;l.add(k);sh(cy(.075,.06,.4),cm,0,-.2,0,k);sh(new THREE.BoxGeometry(.12,.11,.27),dk,0,-.41,.05,k);return[l,k]};
+ const[aL,eL]=arm(-1),[aR,eR]=arm(1),[lL,kL]=leg(-1),[lR,kR]=leg(1);
+ g.r={hips,ch,head:hd,aL,aR,eL,eR,lL,lR,kL,kR};sc.add(g);return g}
+function anim(h,b,a){const r=h.r,s=Math.sin(b),c=Math.cos(b);r.lL.rotation.x=s*.7*a;r.lR.rotation.x=-s*.7*a;r.kL.rotation.x=Math.max(0,c)*.9*a;r.kR.rotation.x=Math.max(0,-c)*.9*a;
+ r.aL.rotation.x=-s*.6*a-.05;r.aR.rotation.x=s*.6*a-.05;r.eL.rotation.x=r.eR.rotation.x=-.3-.3*a;r.hips.position.y=.95+Math.abs(c)*.04*a;r.ch.rotation.x=.08*a;r.ch.scale.y=1+Math.sin(S.t*1.6)*.006*(1-a)}
+function work(h,t,k,i){const r=h.r;r.aL.rotation.x=k?-1.1+Math.sin(t*9+i)*.35:Math.sin(t*1.2+i)*.05;r.aR.rotation.x=k?-1.1+Math.sin(t*9+i+2)*.35:-Math.sin(t*1.2+i)*.05;
+ r.eL.rotation.x=r.eR.rotation.x=k?-.7:-.25;r.lL.rotation.x=r.lR.rotation.x=0;r.ch.scale.y=1+Math.sin(t*1.5+i)*.006;r.head.rotation.y=Math.sin(t*.6+i)*.3}
+const rn1=human(0xf2b300,0xffffff,0xc89878),rn2=human(0xf2b300,0xffffff,0x8d5a3b),dm=human(0xf2b300,0xffd200,0xe0b090);dm.position.set(0,22.15,-3);
+// partículas de lama ao longo do circuito
+const PATH=[[-15,2.6,-9],[-8,1.2,-10],[-3.5,1,-3.6],[-3.5,32,-3.6],[0,32,0],[0,1,0],[0,-1,0],[1.2,.8,0],[1.2,.8,-12],[5,2,-17],[9,2,-17],[12,2,-17],[15,2,-17],[15,.8,-19.5],[-15,.8,-19.5],[-15,2.7,-15],[-15,2.7,-9]].map(p=>new THREE.Vector3(...p));
+const seg=[];let tot=0;for(let i=1;i<PATH.length;i++){const l=PATH[i].distanceTo(PATH[i-1]);seg.push(l);tot+=l}
+const NP=48,pg=new THREE.BufferGeometry(),pp=new Float32Array(NP*3),pt=[];for(let i=0;i<NP;i++)pt.push(i/NP*tot);
+pg.setAttribute('position',new THREE.BufferAttribute(pp,3));const pts=new THREE.Points(pg,new THREE.PointsMaterial({color:0xc07a28,size:.5}));pts.frustumCulled=false;sc.add(pts);
+// tubo do standpipe
+cyl(.12,31,0x999999,-3.5,16.5,-3.6);
+// luz de alarme
+const beacon=new THREE.PointLight(0xff0000,0,25);beacon.position.set(0,38,0);sc.add(beacon);const bm=new THREE.Mesh(new THREE.SphereGeometry(.5),M(0x440000));bm.position.copy(beacon.position);sc.add(bm);
+// jogador
+const P=new THREE.Group();sc.add(P);P.position.set(0,0,12);
+const pl=human(0xf2b300,0xffffff,0xd9a47c);P.add(pl);
+// entrada
+const K={},joy={x:0,y:0};let yaw=0,pit=.28,dist=7,doorA=0,doorT=0,panelOpen=false,run=false,bob=0,moveSpeed=0, sprintTouch=false,camYaw=yaw,camPit=pit;
+onkeydown=e=>{K[e.code]=1;if(e.code=='KeyE')interact();if(e.code=='Escape')closePanel&&closePanel()};onkeyup=e=>K[e.code]=0;
+const drag={};cv.onpointerdown=e=>{drag[e.pointerId]=[e.clientX,e.clientY];cv.setPointerCapture(e.pointerId)};
+cv.onpointermove=e=>{const d=drag[e.pointerId];if(!d)return;yaw-=(e.clientX-d[0])*.006;pit=clamp(pit+(e.clientY-d[1])*.005,.05,1.2);d[0]=e.clientX;d[1]=e.clientY};
+cv.onpointerup=cv.onpointercancel=e=>delete drag[e.pointerId];cv.onwheel=e=>dist=clamp(dist+e.deltaY*.005,3,12);
+const jz=document.getElementById('joy'),jk=document.getElementById('knob');let jid=null;
+jz.onpointerdown=e=>{jid=e.pointerId;jz.setPointerCapture(jid);jm(e)};jz.onpointermove=e=>{if(e.pointerId==jid)jm(e)};
+jz.onpointerup=jz.onpointercancel=()=>{jid=null;joy.x=joy.y=0;jk.style.transform=''};
+function jm(e){const r=jz.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let x=(e.clientX-cx)/(r.width/2),y=(e.clientY-cy)/(r.height/2);const l=Math.hypot(x,y);if(l>1){x/=l;y/=l}
+ joy.x=x;joy.y=y;jk.style.transform=`translate(${x*35}px,${y*35}px)`;run=l>.9}
+document.getElementById('btnE').onclick=()=>interact();
+const sprintBtn=document.getElementById('btnSprint');if(sprintBtn){sprintBtn.onpointerdown=e=>{e.preventDefault();sprintTouch=true;sprintBtn.classList.add('active')};sprintBtn.onpointerup=sprintBtn.onpointercancel=sprintBtn.onpointerleave=()=>{sprintTouch=false;sprintBtn.classList.remove('active')}}
+// interações
+const IA=[
+ {x:13.5,z:-4,r:2.6,t:'Abrir/fechar porta',f:()=>{doorT=doorT?0:1.6;msg(doorT?'Porta aberta':'Porta fechada')}},
+ {x:14,z:-9.2,r:2.2,t:'Operar Painel do Driller',f:()=>openPanel()},
+ {x:0,z:2.5,r:3.5,t:'Inspecionar Top Drive / mesa rotativa',f:()=>msg(`Top Drive: ${S.rpm.toFixed(0)} RPM, altura ${S.h.toFixed(1)} m, cunhas ${S.slips?'ativas':'soltas'}, hook load ${S.hook.toFixed(0)} klb`)},
+ {x:-6.5,z:-8.5,r:3,t:'Inspecionar bombas de lama',f:()=>msg(`Bombas: ${S.spm.toFixed(0)} SPM, ${S.fin.toFixed(0)} gpm, SPP ${S.spp.toFixed(0)} psi`)},
+ {x:9,z:-15,r:4,t:'Inspecionar peneiras/degasser',f:()=>msg(`Retorno: ${S.fout.toFixed(0)} gpm, densidade ${S.dens.toFixed(2)} ppg`)},
+ {x:-15,z:-12,r:5,t:'Inspecionar tanques ativos',f:()=>msg(`Volume ativo: ${S.pit.toFixed(1)} bbl (ganho ${(S.pit-S.pit0).toFixed(1)})`)},
+ {x:0,z:-15.5,r:2.5,t:'Tratamento de lama (ajuste no painel)',f:()=>msg('Ajuste a densidade no Painel do Driller > Tratamento de lama')}];
+let near=null;
+function interact(){if(panelOpen)return;if(near){near.f();if(near.t.includes('Painel'))document.querySelector('#mission b').textContent='Modo operação — Doghouse';else document.querySelector('#mission b').textContent=near.t.replace('Abrir/fechar porta','Acesso ao Doghouse')}}
+// movimento com colisões
+const blocked=(x,z)=>{if(Math.abs(x)>20||Math.abs(z)>20)return true;
+ for(const c of C)if(c.on()&&x+.4>c.x0&&x-.4<c.x1&&z+.4>c.z0&&z-.4<c.z1)return true;
+ if(P.position.y>2.2&&!((x>-15.3&&x<-12.7&&z>2&&z<6)||(x>-18&&x<-10&&z>6&&z<14)))return true;return false};
+const ray=new THREE.Raycaster(),_v=new THREE.Vector3(),_d=new THREE.Vector3(),_camTarget=new THREE.Vector3();
+let last=performance.now();
+function resize(){R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}onresize=resize;setQuality(initialQuality);resize();
+function loop(now){
+ const dt=Math.min((now-last)/1000,.05);last=now;step(dt);
+ // jogador
+ let ix=(K.KeyD||K.ArrowRight?1:0)-(K.KeyA||K.ArrowLeft?1:0)+joy.x,iz=(K.KeyS||K.ArrowDown?1:0)-(K.KeyW||K.ArrowUp?1:0)+joy.y;
+ if(panelOpen)ix=iz=0;const l=Math.hypot(ix,iz);if(l>1){ix/=l;iz/=l}
+ const sprinting=!!(K.ShiftLeft||K.ShiftRight||run||sprintTouch);
+ const targetSpeed=l>.08?(sprinting?6.8:3.35)*Math.min(l,1):0;moveSpeed+=(targetSpeed-moveSpeed)*Math.min(1,dt*(targetSpeed>moveSpeed?5.5:8));
+ if(moveSpeed>.04){const sy=Math.sin(yaw),cy=Math.cos(yaw),dx=(ix*cy+iz*sy)*moveSpeed*dt,dz=(iz*cy-ix*sy)*moveSpeed*dt;
+  if(!blocked(P.position.x+dx,P.position.z))P.position.x+=dx;if(!blocked(P.position.x,P.position.z+dz))P.position.z+=dz;
+  const desired=Math.atan2(dx,dz);let da=((desired-P.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;P.rotation.y+=da*Math.min(1,dt*11);bob+=dt*moveSpeed*2.25}
+ const gy=gh(P.position.x,P.position.z);P.position.y+=(gy-P.position.y)*Math.min(1,dt*10);
+ anim(pl,bob,clamp(moveSpeed/3.4,0,1));pl.r.ch.rotation.z+=(((sprinting&&moveSpeed>.2)?0.035:0)-pl.r.ch.rotation.z)*Math.min(1,dt*5);
+ // porta
+ doorA+=(doorT-doorA)*Math.min(1,dt*5);doorP.rotation.y=-doorA;
+ // câmara com colisão
+ _v.set(P.position.x,P.position.y+1.6,P.position.z);
+ camYaw+=(yaw-camYaw)*Math.min(1,dt*9);camPit+=(pit-camPit)*Math.min(1,dt*9);
+ _d.set(Math.sin(camYaw)*Math.cos(camPit),Math.sin(camPit),Math.cos(camYaw)*Math.cos(camPit));
+ ray.set(_v,_d);ray.far=dist;const hit=ray.intersectObjects(solids,false)[0];const dd=hit?Math.max(.8,hit.distance-.3):dist;
+ _camTarget.copy(_v).addScaledVector(_d,dd);if(panelOpen){_camTarget.set(14,2.35,-6.8);_v.set(14,1.9,-10.1);cam.position.lerp(_camTarget,1-Math.exp(-4*dt));cam.lookAt(_v)}else{cam.position.lerp(_camTarget,1-Math.exp(-7*dt));cam.lookAt(_v)}
+ // Top Drive, bloco, coluna
+ const by=2+S.h;td.position.y=by;tdRot.rotation.y+=S.rpm*dt*.1;cabinLever.rotation.z=-S.lever*.55;
+ if(Math.floor(S.t*3)!==Math.floor((S.t-dt)*3)){liveScreens.forEach(({face,fg,tex,i})=>{fg.fillStyle='#06131c';fg.fillRect(0,0,512,320);fg.fillStyle='#48d6b0';fg.font='bold 25px monospace';fg.fillText(['TOP DRIVE / DRAWWORKS','MUD SYSTEM / PUMPS','WELL CONTROL'][i],18,38);fg.strokeStyle='#1a5360';fg.lineWidth=2;for(let y=65;y<300;y+=38){fg.beginPath();fg.moveTo(15,y);fg.lineTo(495,y);fg.stroke()}fg.fillStyle='#e8f4f5';fg.font='bold 34px monospace';const vals=i===0?[`RPM ${S.rpm.toFixed(0)}`,`BLOCK ${S.h.toFixed(1)} m`,`HOOK ${S.hook.toFixed(0)} klb`]:i===1?[`SPM ${S.spm.toFixed(0)}`,`SPP ${S.spp.toFixed(0)} psi`,`FLOW ${S.fin.toFixed(0)} gpm`]:[`PIT ${S.pit.toFixed(1)} bbl`,`CAS ${S.casP.toFixed(0)} psi`,S.al.length?'ALARM ACTIVE':'STATUS NORMAL'];vals.forEach((v,j)=>fg.fillText(v,20,112+j*62));fg.fillStyle=S.al.length&&i===2?'#ff4545':'#ffd05a';fg.fillRect(20,278,Math.max(15,Math.min(470,(i===0?S.h/28:i===1?S.spm/120:S.pit/500)*470)),8);tex.needsUpdate=true;});}td.rotation.y=Math.sin(S.t*1.4)*.006*(S.rpm>5?1:0);craneCable.rotation.z=Math.sin(S.t*.35)*.025;craneHook.position.y=4+Math.sin(S.t*.35)*.12;
+ pipe.scale.y=Math.max(.01,by-.9);pipe.position.y=.9+(by-.9)/2;pipe.rotation.y+=S.rpm*dt*.1;
+ const cl=Math.max(.1,36-(by+2.6));cabL.scale.y=cabR.scale.y=cl;cabL.position.y=cabR.position.y=by+2.6+cl/2;
+ // trabalhadores
+ const k=S.conn>0?1:0,t=S.t;
+ rn1.position.set(1.8-k*.5,0,2.4-k*1.2);rn2.position.set(-1.8+k*.5,0,2.4-k*1.2);
+ rn1.rotation.set(.12*k,Math.PI,0);rn2.rotation.set(.12*k,Math.PI,0);work(rn1,t,k,0);work(rn2,t,k,1);work(dm,t,0,2);rn1.position.y=rn2.position.y=Math.abs(Math.sin(t*(2+k*6)))*.04;
+ dm.position.x=k?Math.sin(t*2)*1:Math.sin(t*.5)*.3;dm.rotation.y=Math.sin(t)*.4;
+ // lama
+ const flow=S.fout>0?S.fout:S.fin;const vel=flow/60*1.2;
+ for(let i=0;i<NP;i++){pt[i]=(pt[i]+vel*dt)%tot;let d=pt[i],j=0;while(d>seg[j]&&j<seg.length-1){d-=seg[j];j++}
+  _v.lerpVectors(PATH[j],PATH[j+1],d/seg[j]);pp[i*3]=_v.x;pp[i*3+1]=_v.y;pp[i*3+2]=_v.z}
+ pg.attributes.position.needsUpdate=true;pts.visible=flow>1;
+ const la=clamp(S.tankA/300,.08,1),lb=clamp(S.tankB/300,.08,1),ls=clamp(S.storageTank/450,.08,1),lt=clamp(S.tripTank/80,.08,1);liq[0].scale.y=la;liq[1].scale.y=lb;liq[0].position.y=.3+la;liq[1].position.y=.3+lb;liq[2].scale.y=ls;liq[2].position.y=.3+ls;tripLiq.scale.y=lt;tripLiq.position.y=.15+lt*.95;
+ // alarme visual/sonoro
+ const al=S.al.length>0;beacon.intensity=al?(Math.sin(t*10)>0?3:0):0;bm.material.emissive.setHex(al?0xff0000:0x220000);
+ (scr.material).emissive.setHex(al&&Math.sin(t*6)>0?0x550000:0x000000);
+ if(al)alarmSound(t);
+ // mar
+ if((Math.floor(now/50))%2==0){const a=seaG.attributes.position;for(let i=0;i<a.count;i++)a.setY(i,Math.sin(a.getX(i)*.08+t*.9)*.5+Math.cos(a.getZ(i)*.07+t*.7)*.4);a.needsUpdate=true;seaG.computeVertexNormals()}
+ // interação mais próxima
+ near=null;let bd=1e9;for(const o of IA){const d=Math.hypot(P.position.x-o.x,P.position.z-o.z);if(d<o.r&&d<bd){bd=d;near=o}}
+ const pr=document.getElementById('prompt');pr.style.display=near&&!panelOpen?'block':'none';if(near)pr.textContent='[E] '+near.t;
+ hudUpdate();R.render(sc,cam);requestAnimationFrame(loop)}
+requestAnimationFrame(loop);
+
+</script>
 </body></html>
