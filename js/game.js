@@ -1,11 +1,19 @@
 // Mundo 3D, jogador, câmara, interações. Tudo lê o estado S do motor.
-const cv=document.getElementById('c'),R=new THREE.WebGLRenderer({canvas:cv,antialias:devicePixelRatio<2});
-R.setPixelRatio(Math.min(devicePixelRatio,1.5));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.15;
-const sc=new THREE.Scene();sc.background=new THREE.Color(0x7d8b95);sc.fog=new THREE.Fog(0x7d8b95,40,230);
-const cam=new THREE.PerspectiveCamera(60,1,.1,400);
-sc.add(new THREE.HemisphereLight(0xc8d2da,0x2a3238,.75));
-const sun=new THREE.DirectionalLight(0xe4ecf2,.8);sun.position.set(30,50,20);sun.castShadow=true;
-sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-35,right:35,top:35,bottom:-35,far:120});sc.add(sun);
+const cv=document.getElementById('c'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});
+R.setPixelRatio(Math.min(devicePixelRatio,1.75));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=1.22;
+R.physicallyCorrectLights=true;
+const sc=new THREE.Scene();sc.background=new THREE.Color(0x8da9bd);sc.fog=new THREE.Fog(0x8da9bd,75,280);
+const cam=new THREE.PerspectiveCamera(62,1,.1,500);
+sc.add(new THREE.HemisphereLight(0xdcecff,0x34404a,1.05));
+const fill=new THREE.DirectionalLight(0x91b9d8,.28);fill.position.set(-35,18,-25);sc.add(fill);
+const sun=new THREE.DirectionalLight(0xffe3bd,1.45);sun.position.set(30,50,20);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-42,right:42,top:42,bottom:-42,far:150});sun.shadow.bias=-0.00025;sc.add(sun);
+// Sol e ambiente atmosférico para dar profundidade ao horizonte offshore.
+const sunBall=new THREE.Mesh(new THREE.SphereGeometry(7,20,16),new THREE.MeshBasicMaterial({color:0xffe1ae}));sunBall.position.set(-95,75,-150);sc.add(sunBall);
+const quality=document.getElementById('quality');
+function setQuality(level){const q=level||'high',dpr=Math.min(devicePixelRatio,q==='high'?1.75:q==='medium'?1.35:1);R.setPixelRatio(dpr);R.shadowMap.enabled=q!=='low';sun.shadow.mapSize.setScalar(q==='high'?2048:q==='medium'?1024:512);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}R.shadowMap.needsUpdate=true;R.setSize(innerWidth,innerHeight,false);R.toneMappingExposure=q==='high'?1.22:q==='medium'?1.15:1.08;sc.fog.near=q==='high'?75:55;sc.fog.far=q==='high'?280:q==='medium'?230:190;}
+const initialQuality=(matchMedia('(max-width: 700px)').matches||(navigator.deviceMemory&&navigator.deviceMemory<=4))?'medium':'high';
+if(quality){quality.value=initialQuality;quality.addEventListener('change',e=>setQuality(e.target.value))}
 const rk=document.createElement('canvas');rk.width=rk.height=256;{const g=rk.getContext('2d');g.fillStyle='#d6d6d2';g.fillRect(0,0,256,256);
  for(let i=0;i<2500;i++){const x=Math.random()*256,y=Math.random()*256,a=Math.random()*.25;g.fillStyle=Math.random()<.5?`rgba(120,62,24,${a})`:`rgba(30,30,30,${a})`;g.fillRect(x,y,1+Math.random()*5,1+Math.random()*5)}
  for(let i=0;i<40;i++){const x=Math.random()*256,y=Math.random()*200,l=20+Math.random()*50,gr=g.createLinearGradient(0,y,0,y+l);gr.addColorStop(0,'rgba(110,55,20,.35)');gr.addColorStop(1,'rgba(110,55,20,0)');g.fillStyle=gr;g.fillRect(x,y,2+Math.random()*3,l)}}
@@ -18,7 +26,7 @@ function col(x0,x1,z0,z1,on){C.push({x0,x1,z0,z1,on:on||(()=>1)})}
 function label(t,x,y,z){const k=document.createElement('canvas');k.width=256;k.height=64;const g=k.getContext('2d');g.fillStyle='rgba(0,0,0,.6)';g.fillRect(0,0,256,64);g.fillStyle='#ffd24a';g.font='bold 28px sans-serif';g.textAlign='center';g.fillText(t,128,42);
  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(k),depthTest:false}));s.position.set(x,y,z);s.scale.set(5,1.25,1);sc.add(s)}
 // mar
-const seaG=new THREE.PlaneGeometry(500,500,50,50);seaG.rotateX(-Math.PI/2);const sea=new THREE.Mesh(seaG,new THREE.MeshStandardMaterial({color:0x2a4c5e,roughness:.25,metalness:.1}));sea.position.y=-12;sea.receiveShadow=true;sc.add(sea);
+const seaG=new THREE.PlaneGeometry(500,500,80,80);seaG.rotateX(-Math.PI/2);const sea=new THREE.Mesh(seaG,new THREE.MeshStandardMaterial({color:0x24556d,roughness:.22,metalness:.18,transparent:true,opacity:.96}));sea.position.y=-12;sea.receiveShadow=true;sc.add(sea);
 // plataforma
 const gk=document.createElement('canvas');gk.width=gk.height=64;{const g=gk.getContext('2d');g.fillStyle='#1c1f22';g.fillRect(0,0,64,64);g.strokeStyle='#4a5056';g.lineWidth=3;for(let i=0;i<64;i+=8){g.beginPath();g.moveTo(i,0);g.lineTo(i,64);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(64,i);g.stroke()}}
 const gt=new THREE.CanvasTexture(gk);gt.wrapS=gt.wrapT=THREE.RepeatWrapping;gt.repeat.set(42,42);
@@ -36,13 +44,36 @@ const td=new THREE.Group();sc.add(td);
 box(1.4,1.6,1,0xe8c01a,0,1,0,td);const tdRot=cyl(.35,.9,0x444444,0,0,0,td,8);box(1.2,1.2,.8,0x2b4c7e,0,-1.6+1,0,td).position.y=-.3+1.9-.9-.9;
 const hook=cyl(.15,.8,0xdd2222,0,2.2,0,td);
 const pipe=cyl(.12,1,0x9aa0a6,0,0,0),cabL=cyl(.04,1,0x222222,-.5,0,-.8),cabR=cyl(.04,1,0x222222,.5,0,-.8);
+// Detalhes de produção: passadiços, guarda-corpos, tubagens, luzes e marcações de segurança.
+const metalMat=new THREE.MeshStandardMaterial({color:0x667783,metalness:.78,roughness:.34});
+const yellowMat=new THREE.MeshStandardMaterial({color:0xf0b323,metalness:.38,roughness:.55});
+// Contraventamento diagonal do mastro: estrutura treliçada em vez de simples postes.
+function brace(ax,ay,az,bx,by,bz,r=.065,mat=metalMat){const a=new THREE.Vector3(ax,ay,az),b=new THREE.Vector3(bx,by,bz),dir=new THREE.Vector3().subVectors(b,a),len=dir.length();const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,len,8),mat);m.position.copy(a).add(b).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),dir.normalize());m.castShadow=true;m.receiveShadow=true;sc.add(m)}
+for(let y=4;y<32;y+=8){const y2=y+8;for(const x of [-3.5,3.5]){brace(x,y,-3.5,x,y2,3.5,.075,metalMat);brace(x,y,3.5,x,y2,-3.5,.075,metalMat)}for(const z of [-3.5,3.5]){brace(-3.5,y,z,3.5,y2,z,.075,metalMat);brace(3.5,y,z,-3.5,y2,z,.075,metalMat)}}
+// Nuvens leves no horizonte para reforçar a escala e profundidade offshore.
+for(let i=0;i<9;i++){const cloud=new THREE.Group();const cx=-120+i*31,cy=48+(i%3)*13,cz=-155-(i%4)*22;for(let j=0;j<5;j++){const puff=new THREE.Mesh(new THREE.SphereGeometry(5+(j%2)*2,12,10),new THREE.MeshStandardMaterial({color:0xd5e0e7,roughness:1,transparent:true,opacity:.48}));puff.position.set((j-2)*5,Math.sin(j*1.4)*2,Math.cos(j)*3);cloud.add(puff)}cloud.position.set(cx,cy,cz);sc.add(cloud)}
+function rail(x1,z1,x2,z2,y=1.15){const dx=x2-x1,dz=z2-z1,len=Math.hypot(dx,dz),ang=Math.atan2(dz,dx);for(let x=0;x<=len;x+=2.5){const px=x1+Math.cos(ang)*x,pz=z1+Math.sin(ang)*x;const post=new THREE.Mesh(new THREE.CylinderGeometry(.045,.055,1.15,8),metalMat);post.position.set(px,y-.05,pz);post.castShadow=true;sc.add(post)}for(const yy of [y-.38,y+.18]){const bar=new THREE.Mesh(new THREE.BoxGeometry(len,.065,.065),yellowMat);bar.position.set((x1+x2)/2,yy,(z1+z2)/2);bar.rotation.y=-ang;bar.castShadow=true;sc.add(bar)}}
+rail(-19,-19,19,-19);rail(-19,19,19,19);rail(-19,-19,-19,19);rail(19,-19,19,19);
+// Tubagens industriais paralelas ao convés.
+for(let i=0;i<4;i++){const t=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,29,12),metalMat);t.rotation.z=Math.PI/2;t.position.set(0,.35+i*.23,-13+i*.55);t.castShadow=true;sc.add(t);for(let x=-13;x<=13;x+=6){const saddle=box(.18,.35,.25,0x4b5962,x,.12+i*.23,-13+i*.55);saddle.material=metalMat}}
+// Faixas de segurança junto à mesa rotativa.
+for(let i=0;i<12;i++){const stripe=box(.55,.025,.13,i%2?0x171c20:0xf4c02d,Math.cos(i*Math.PI/6)*2.0,.025,Math.sin(i*Math.PI/6)*2.0);stripe.rotation.y=i*Math.PI/6}
+// Projectores industriais no perímetro e nos níveis superiores.
+const workLights=[];[[-18,7,-18],[18,7,-18],[-18,7,18],[18,7,18],[0,34,0]].forEach((p,i)=>{const pole=cyl(.09,5,0x59636a,p[0],p[1]-2.5,p[2],0,10);const lamp=box(.65,.28,.35,0xffe6a3,p[0],p[1],p[2]);lamp.material=new THREE.MeshStandardMaterial({color:0xffe2a0,emissive:0xffbd55,emissiveIntensity:1.8});const light=new THREE.PointLight(0xffd99a,.55,22);light.position.set(p[0],p[1]-.2,p[2]);sc.add(light);workLights.push(light)});
+// Pequeno guindaste de apoio no convés.
+const craneBase=box(2.8,.6,2.8,0x39434a,16,.3,14);const craneMast=box(.5,7,.5,0xe5a91c,16,4,14);const craneArm=box(8,.35,.45,0xe5a91c,12,7.3,14);const craneCable=cyl(.035,3,0x242a30,9,5.6,14,0,8);const craneHook=cyl(.12,.35,0xc52e27,9,4,14,0,8);
 // doghouse (14,-8)
 const dh=[box(8,4,.3,0x9aa396,14,2,-11,0,1),box(.3,4,6,0x9aa396,10,2,-8,0,1),box(.3,4,6,0x9aa396,18,2,-8,0,1),
  box(3,4,.3,0x9aa396,11.5,2,-5,0,1),box(3,4,.3,0x9aa396,16.5,2,-5,0,1),box(8.4,.3,6.4,0x6f786d,14,4.1,-8,0,1)];
 col(10.9,17.1,-11.2,-10.8);col(9.8,10.2,-11,-5);col(17.8,18.2,-11,-5);col(10,13,-5.2,-4.8);col(15,18,-5.2,-4.8);
 const doorP=new THREE.Group();doorP.position.set(13,0,-5);sc.add(doorP);const door=box(2,3.4,.2,0x8a5a2a,1,1.7,0,doorP,1);col(13,15,-5.3,-4.7,()=>doorA<.8);
 const panelM=box(3,1.2,.8,0x222a33,14,.6,-10.4);box(2.6,.8,.1,0x00ff88,14,1.5,-10.1).material=M(0x003322,0x00aa55);col(12.4,15.6,-10.9,-9.9);
-const scr=panelM;const dhLight=new THREE.PointLight(0xffffff,.9,12);dhLight.position.set(14,3.4,-8);sc.add(dhLight);label('ENTER DOGHOUSE',14,4.7,-4.8);
+const scr=panelM;const dhLight=new THREE.PointLight(0xffffff,1.15,14);dhLight.position.set(14,3.4,-8);sc.add(dhLight);
+// Interior do Doghouse: consola, três monitores, cadeira e iluminação de tarefa.
+const desk=box(4.6,.18,1.1,0x26343d,14,.95,-9.3);desk.material=metalMat;
+for(let i=0;i<3;i++){const mon=box(1.05,.78,.12,0x101b24,12.55+i*1.42,2.05,-10.25);mon.material=new THREE.MeshStandardMaterial({color:0x06131c,emissive:i===1?0x063b38:0x09283c,emissiveIntensity:1.2,metalness:.25,roughness:.2});box(.98,.7,.025,0x0c453f,12.55+i*1.42,2.05,-10.17).material=new THREE.MeshBasicMaterial({color:i===1?0x1b8d72:0x176080});}
+const chairBase=cyl(.09,.8,0x4a5963,14,.42,-8.5);const chairSeat=box(.9,.16,.85,0x1d2932,14,.85,-8.5);const chairBack=box(.9,1,.16,0x273844,14,1.38,-8.9);
+label('ENTER DOGHOUSE',14,4.7,-4.8);
 [[12,-4.82,1.6,.05],[17,-4.82,1.6,.05]].forEach(w=>box(w[2],1.2,w[3],0x141c22,w[0],2.6,w[1]).material.emissive.setHex(0x0a1218));
 box(.05,1.2,1.6,0x141c22,18.17,2.6,-8).material.emissive.setHex(0x0a1218);box(.05,1.2,1.6,0x141c22,9.83,2.6,-8).material.emissive.setHex(0x0a1218);
 // tanques de lama e equipamento
@@ -54,6 +85,8 @@ box(2.5,1.6,1.6,0x444b52,-8,.8,-10,0,1);box(2.5,1.6,1.6,0x444b52,-5,.8,-10,0,1);
 box(3,1.5,2.5,0x6a7078,5,.75,-17,0,1);cyl(.9,3,0x8a6d3b,9,1.5,-17);cyl(.9,3,0x8a6d3b,12,1.5,-17);cyl(.9,3,0x8a6d3b,15,1.5,-17);col(3.5,16,-18.3,-15.7);
 label('PENEIRAS',5,2.8,-17);label('DEGASSER',9,3.8,-17);label('DESANDER',12,3.8,-17);label('DESILTER',15,3.8,-17);
 box(2.5,1.2,2.5,0x4d6b3a,0,.6,-17,0,1);col(-1.4,1.4,-18.3,-15.7);label('TRATAMENTO DE LAMA',0,2.4,-17);
+// Trip tank dedicado com nível visual independente.
+box(3.4,2.2,3.2,0x737e86,-15,1.1,-2.8,0,1);const tripLiq=box(3.05,1.9,2.85,0x82622f,-15,1.12,-2.8);tripLiq.material=new THREE.MeshStandardMaterial({color:0x9a7138,roughness:.3,metalness:.12,transparent:true,opacity:.82});label('TRIP TANK',-15,3.2,-2.8);
 // mezanino com escadas
 for(let i=0;i<12;i++)box(2.5,.25,.34,0x888888,-14,i*.25+.1,2.17+i*.333);
 box(8,3,8,0x555a60,-14,1.5,10,0,1);col(-18,-10,6,14,()=>P.y<2.4);box(8,.2,8,0x6e5b46,-14,3.05,10);label('MEZANINO / ESCADAS',-14,5,10);
@@ -120,9 +153,9 @@ function interact(){if(panelOpen)return;if(near)near.f()}
 const blocked=(x,z)=>{if(Math.abs(x)>20||Math.abs(z)>20)return true;
  for(const c of C)if(c.on()&&x+.4>c.x0&&x-.4<c.x1&&z+.4>c.z0&&z-.4<c.z1)return true;
  if(P.position.y>2.2&&!((x>-15.3&&x<-12.7&&z>2&&z<6)||(x>-18&&x<-10&&z>6&&z<14)))return true;return false};
-const ray=new THREE.Raycaster(),_v=new THREE.Vector3(),_d=new THREE.Vector3();
+const ray=new THREE.Raycaster(),_v=new THREE.Vector3(),_d=new THREE.Vector3(),_camTarget=new THREE.Vector3();
 let last=performance.now();
-function resize(){R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}onresize=resize;resize();
+function resize(){R.setSize(innerWidth,innerHeight,false);cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix()}onresize=resize;setQuality(initialQuality);resize();
 function loop(now){
  const dt=Math.min((now-last)/1000,.05);last=now;step(dt);
  // jogador
@@ -139,9 +172,9 @@ function loop(now){
  _v.set(P.position.x,P.position.y+1.6,P.position.z);
  _d.set(Math.sin(yaw)*Math.cos(pit),Math.sin(pit),Math.cos(yaw)*Math.cos(pit));
  ray.set(_v,_d);ray.far=dist;const hit=ray.intersectObjects(solids,false)[0];const dd=hit?Math.max(.8,hit.distance-.3):dist;
- cam.position.copy(_v).addScaledVector(_d,dd);cam.lookAt(_v);
+ _camTarget.copy(_v).addScaledVector(_d,dd);cam.position.lerp(_camTarget,1-Math.exp(-10*dt));cam.lookAt(_v);
  // Top Drive, bloco, coluna
- const by=2+S.h;td.position.y=by;tdRot.rotation.y+=S.rpm*dt*.1;
+ const by=2+S.h;td.position.y=by;tdRot.rotation.y+=S.rpm*dt*.1;craneCable.rotation.z=Math.sin(S.t*.35)*.025;craneHook.position.y=4+Math.sin(S.t*.35)*.12;
  pipe.scale.y=Math.max(.01,by-.9);pipe.position.y=.9+(by-.9)/2;pipe.rotation.y+=S.rpm*dt*.1;
  const cl=Math.max(.1,36-(by+2.6));cabL.scale.y=cabR.scale.y=cl;cabL.position.y=cabR.position.y=by+2.6+cl/2;
  // trabalhadores
@@ -154,7 +187,7 @@ function loop(now){
  for(let i=0;i<NP;i++){pt[i]=(pt[i]+vel*dt)%tot;let d=pt[i],j=0;while(d>seg[j]&&j<seg.length-1){d-=seg[j];j++}
   _v.lerpVectors(PATH[j],PATH[j+1],d/seg[j]);pp[i*3]=_v.x;pp[i*3+1]=_v.y;pp[i*3+2]=_v.z}
  pg.attributes.position.needsUpdate=true;pts.visible=flow>1;
- const lv=clamp(S.pit/600,.05,1);liq[0].scale.y=liq[1].scale.y=lv;liq[0].position.y=liq[1].position.y=.3+lv;liq[2].scale.y=.8;liq[2].position.y=1.1;
+ const la=clamp(S.tankA/300,.08,1),lb=clamp(S.tankB/300,.08,1),ls=clamp(S.storageTank/450,.08,1),lt=clamp(S.tripTank/80,.08,1);liq[0].scale.y=la;liq[1].scale.y=lb;liq[0].position.y=.3+la;liq[1].position.y=.3+lb;liq[2].scale.y=ls;liq[2].position.y=.3+ls;tripLiq.scale.y=lt;tripLiq.position.y=.15+lt*.95;
  // alarme visual/sonoro
  const al=S.al.length>0;beacon.intensity=al?(Math.sin(t*10)>0?3:0):0;bm.material.emissive.setHex(al?0xff0000:0x220000);
  (scr.material).emissive.setHex(al&&Math.sin(t*6)>0?0x550000:0x000000);

@@ -9,7 +9,7 @@
 <div id="alarmbar"></div>
 <div id="joy"><div id="knob"></div></div>
 <button id="btnE">E</button>
-<button id="btnAcc">Conta</button>
+<div id="topActions"><label for="quality">GRÁFICOS</label><select id="quality"><option value="high" selected>ALTO</option><option value="medium">MÉDIO</option><option value="low">LEVE</option></select><button id="btnAcc">CONTA</button></div>
 <div id="help">WASD mover · Shift correr · arrastar = câmara · roda = zoom · E interagir · Esc fechar painel</div>
 
 <div id="acct" hidden><h3>Conta (Supabase)</h3>
@@ -44,8 +44,8 @@
    <button id="bLotR">Registar resultado</button>
    <div id="lotRes"></div>
   </section>
-  <section><canvas id="cG" width="560" height="270"></canvas><div id="dig"></div><canvas id="cW" width="260" height="440"></canvas></section>
-  <section><canvas id="cH" width="520" height="640"></canvas><canvas id="cL" width="520" height="220"></canvas></section>
+  <section class="monitor"><h3>MONITORIZAÇÃO DE PRESSÃO E FLUXO</h3><canvas id="cG" width="560" height="270"></canvas><h3>PARÂMETROS EM TEMPO REAL</h3><div id="dig"></div><h3>SECÇÃO DO POÇO</h3><canvas id="cW" width="260" height="440"></canvas></section>
+  <section class="monitor"><h3>TENDÊNCIAS OPERACIONAIS</h3><canvas id="cH" width="520" height="640"></canvas><h3>LEAK-OFF TEST</h3><canvas id="cL" width="520" height="220"></canvas></section>
  </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>

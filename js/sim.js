@@ -1,7 +1,7 @@
 // Motor de simulação único: todos os controlos e animações lêem/escrevem em S.
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v)),mv=(v,t,d)=>v+clamp(t-v,-d,d);
 const S={pumpOn:0,spmT:60,spm:0,rotOn:0,rpmT:80,rpm:0,lever:0,vel:0,h:28,slips:0,needConn:0,elevClosed:1,conn:0,
- bit:1500,hole:1520,anchor:1528,dens:9.6,densT:9.6,pit:400,pit0:400,pore:8.8,kick:0,bop:0,influx:0,
+ bit:1500,hole:1520,anchor:1528,dens:9.6,densT:9.6,pit:400,pit0:400,tankA:192,tankB:208,storageTank:350,tripTank:40,pore:8.8,kick:0,bop:0,influx:0,
  wob:0,rop:0,tq:0,hook:0,spp:0,fin:0,fout:0,casP:0,chk:0,annP:0,hydro:0,t:0,al:[],msg:'',msgT:0,hT:0,
  lot:{on:0,pump:0,vol:0,p:0,leak:null,pts:[],res:[]},hist:{},stats:{conn:0,drilled:0,kicks:0}};
 ['wob','rop','rpm','tq','hook','spp','fin','fout','pit','dens','depth'].forEach(k=>S.hist[k]=[]);
@@ -35,6 +35,8 @@ function step(dt){
  const dP=0.052*(S.pore-S.dens)*S.hole;
  S.influx=(S.kick&&!S.bop&&!L.on)?Math.max(0,S.pore-S.dens)*12:0;
  S.pit+=S.influx*dt/60;
+ // Leituras individuais dos tanques; A+B representam o volume ativo total.
+ S.tankA=S.pit*.48;S.tankB=S.pit*.52;S.storageTank=350;S.tripTank=40+(S.bop?0:S.influx*.015);
  if(S.kick&&S.bop)S.casP=mv(S.casP,Math.max(0,dP),150*dt);else S.casP=mv(S.casP,0,300*dt);
  if(S.kick&&S.dens>=S.pore+0.1&&!S.bop&&S.influx==0){S.kick=0;S.pore=8.8;S.pit0=S.pit;msg('Poço controlado: kick circulado e neutralizado')}
  S.fout=S.bop?0:S.fin*0.98+S.influx*42;
