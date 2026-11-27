@@ -64,7 +64,7 @@ export function Hud() {
       <div className="absolute right-2 top-2 sm:right-3 sm:top-3 flex flex-col items-end gap-2">
         <div className="hud-panel p-1.5"><Minimap /></div>
         <div className="pointer-events-auto flex gap-2">
-          <button onClick={() => set({ account: true })} className="hud-panel px-3 py-1.5 font-hud text-xs font-semibold uppercase tracking-wider hover:text-primary">{user ? "Conta ✓" : "Conta"}</button>
+          <button onClick={() => set({ account: true })} className="hud-panel px-3 py-1.5 font-hud text-xs font-semibold uppercase tracking-wider hover:text-primary">Progresso</button>
           <button onClick={() => set({ paused: !paused })} aria-label="Pausa" className="hud-panel px-3 py-1.5 font-hud text-xs font-semibold uppercase tracking-wider hover:text-primary">❚❚</button>
         </div>
       </div>

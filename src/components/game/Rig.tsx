@@ -145,7 +145,7 @@ export function Doghouse() {
   const mode = useGame((s) => s.mode);
   const screens = useMemo(() => [0, 1, 2].map(() => { const c = document.createElement("canvas"); c.width = 640; c.height = 400; const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return { c, t, g: c.getContext("2d")! }; }), []);
   const acc = useRef(0), drag = useRef<{ y: number } | null>(null);
-  const M = useMemo(() => ({ wall: std("#d9dbd2", { map: tex.container(), metalness: 0.3 }), roof: std("#8b938c"), frame: std("#3a4046"), floor: std("#4a5258", { roughness: 0.8 }), desk: std("#2b3237"), chair: std("#1e2226", { roughness: 0.7 }), seat: std("#3b3f44", { roughness: 0.9 }), glass: new THREE.MeshPhysicalMaterial({ color: "#a9c6d3", transmission: 0.85, roughness: 0.05, thickness: 0.05, transparent: true, opacity: 0.35 }), knob: std("#d43a2a"), door: std("#b0b6b2", { map: tex.container() }), metal: std("#c9cdd0", { metalness: 0.9, roughness: 0.25 }) }), []);
+  const M = useMemo(() => ({ wall: std("#c9a326", { map: tex.container(), metalness: 0.35, roughness: 0.75 }), roof: std("#8b938c"), frame: std("#3a4046"), floor: std("#4a5258", { roughness: 0.8 }), desk: std("#2b3237"), chair: std("#1e2226", { roughness: 0.7 }), seat: std("#3b3f44", { roughness: 0.9 }), glass: new THREE.MeshPhysicalMaterial({ color: "#a9c6d3", transmission: 0.85, roughness: 0.05, thickness: 0.05, transparent: true, opacity: 0.35 }), knob: std("#d43a2a"), door: std("#b8931f", { map: tex.container(), roughness: 0.8 }), metal: std("#c9cdd0", { metalness: 0.9, roughness: 0.25 }) }), []);
 
   useEffect(() => {
     const move = (e: PointerEvent) => { if (!drag.current) return; input.leverKey = 0; S.lever = clamp((drag.current.y - e.clientY) / 110, -1, 1); if (Math.abs(S.lever) < 0.08) S.lever = 0; };
@@ -192,7 +192,7 @@ export function Doghouse() {
           <mesh material={M.metal} position={[-0.08, 1.3, -(DOOR.z1 - DOOR.z0) + 0.15]}><boxGeometry args={[0.06, 0.06, 0.2]} /></mesh>
           <mesh material={M.glass} position={[0, 2, -(DOOR.z1 - DOOR.z0) / 2]}><boxGeometry args={[0.1, 0.5, 0.6]} /></mesh>
         </group>
-        <Sign text="DOGHOUSE" p={[X0 - 0.16, H - 0.25, (DOOR.z0 + DOOR.z1) / 2]} r={-Math.PI / 2} size={0.22} />
+        <Sign text="ENTER DOGHOUSE" p={[X0 - 0.16, H - 0.25, (DOOR.z0 + DOOR.z1) / 2]} r={-Math.PI / 2} size={0.22} />
         {/* interior light */}
         <pointLight position={[cxm, H - 0.3, czm]} intensity={6} distance={9} color="#fff3dd" />
         <mesh position={[cxm, H - 0.02, czm]}><boxGeometry args={[1.4, 0.04, 0.3]} /><meshStandardMaterial emissive="#fff6e0" emissiveIntensity={2} color="#fff" /></mesh>

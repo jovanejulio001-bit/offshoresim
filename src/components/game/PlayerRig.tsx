@@ -74,5 +74,5 @@ export function PlayerRig() {
     if (import.meta.env.DEV) (window as unknown as Record<string, unknown>)["__cam"] = [cx, cy, cz, look.x, look.y, look.z, e];
   });
   const mode = useGame((s) => s.mode);
-  return <Character pose={pose} suit="#d8d9d2" hat="#f4f4f0" visible={mode !== "seated"} />;
+  return <Character pose={pose} suit="#e0601c" hat="#ffffff" pants="#1d2840" harness visible={mode !== "seated"} />;
 }

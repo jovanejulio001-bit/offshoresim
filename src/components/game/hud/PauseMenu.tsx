@@ -11,7 +11,7 @@ export function PauseMenu() {
         <h2 className="mt-1 font-hud text-3xl font-bold">Pausa</h2>
         <div className="mt-5 grid gap-2">
           <button onClick={() => set({ paused: false })} className="rounded-sm bg-primary px-4 py-3 font-hud text-sm font-bold uppercase tracking-wider text-primary-foreground">Continuar</button>
-          <button onClick={() => set({ account: true })} className="rounded-sm border border-border bg-secondary px-4 py-3 font-hud text-sm font-bold uppercase tracking-wider">{user ? "Conta & progresso" : "Entrar / Criar conta"}</button>
+          <button onClick={() => set({ account: true })} className="rounded-sm border border-border bg-secondary px-4 py-3 font-hud text-sm font-bold uppercase tracking-wider">Progresso</button>
           <button onClick={() => set({ quality: quality === "high" ? "low" : "high" })} className="rounded-sm border border-border bg-secondary px-4 py-3 font-hud text-sm font-bold uppercase tracking-wider">Gráficos: {quality === "high" ? "Alta qualidade" : "Desempenho"}</button>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
