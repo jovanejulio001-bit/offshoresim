@@ -1,10 +1,9 @@
-import { useEffect, useRef } from "react";
+import { Component, Suspense, useEffect, useRef, type ReactNode } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Suspense } from "react";
 import * as THREE from "three";
 import { Lighting, Ocean } from "./Environment";
 import { Platform } from "./Platform";
-import { RigExterior } from "./RigExterior";
+import { OffshorePlatform } from "./OffshorePlatform";
 import { Doghouse, MudSystem, TopDriveSystem } from "./Rig";
 import { Workers } from "./Workers";
 import { PlayerRig } from "./PlayerRig";
@@ -18,6 +17,12 @@ import { interact, standUp } from "@/game/actions";
 import { S } from "@/game/sim";
 import { player } from "@/game/store";
 import { useAccount } from "@/game/useAccount";
+
+class PlatformBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+  override state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  override render() { return this.state.failed ? this.props.fallback : this.props.children; }
+}
 
 export default function GameCanvas() {
   const wrap = useRef<HTMLDivElement>(null);
@@ -83,12 +88,15 @@ export default function GameCanvas() {
       >
         <Lighting />
         <Ocean />
+        <PlatformBoundary fallback={<Platform />}>
+          <Suspense fallback={<Platform />}>
+            <OffshorePlatform />
+          </Suspense>
+        </PlatformBoundary>
         <Suspense fallback={null}>
-          <Platform />
           <TopDriveSystem />
           <Doghouse />
         </Suspense>
-        <RigExterior />
         <MudSystem />
         <Workers />
         <PlayerRig />
