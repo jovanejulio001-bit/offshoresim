@@ -18,16 +18,16 @@ export function Lighting() {
   });
   return (
     <>
-      <Sky distance={4500} sunPosition={[60, 22, 30]} turbidity={6} rayleigh={1.6} mieCoefficient={0.006} mieDirectionalG={0.86} />
-      <fog attach="fog" args={["#b9c3c6", 70, 420]} />
-      <hemisphereLight args={["#dfe9f0", "#3a3d3a", 0.55]} />
+      <Sky distance={4500} sunPosition={[-30, 8, 5]} turbidity={9} rayleigh={0.9} mieCoefficient={0.009} mieDirectionalG={0.82} />
+      <fog attach="fog" args={["#9eabb0", 48, 310]} />
+      <hemisphereLight args={["#d4e0e5", "#343b3c", 0.62]} />
       <primitive object={target} />
-      <directionalLight ref={sun} target={target} color="#ffe2b8" intensity={2.4} castShadow={quality === "high"}
+      <directionalLight ref={sun} target={target} color="#d4e0e4" intensity={1.65} castShadow={quality === "high"}
         shadow-mapSize={[2048, 2048]} shadow-camera-left={-30} shadow-camera-right={30} shadow-camera-top={30} shadow-camera-bottom={-30} shadow-camera-far={160} shadow-bias={-0.0004} shadow-normalBias={0.04} />
       <Env resolution={128} frames={1}>
-        <Lightformer intensity={1.6} position={[0, 10, 0]} rotation-x={Math.PI / 2} scale={[20, 20, 1]} color="#e8eef2" />
-        <Lightformer intensity={2.2} position={[10, 2, 4]} rotation-y={-Math.PI / 2} scale={[20, 3, 1]} color="#ffcf9a" />
-        <Lightformer intensity={0.8} position={[-10, 1, -2]} rotation-y={Math.PI / 2} scale={[20, 2, 1]} color="#8fb4c8" />
+        <Lightformer intensity={1.35} position={[0, 10, 0]} rotation-x={Math.PI / 2} scale={[20, 20, 1]} color="#dbe5e8" />
+        <Lightformer intensity={1.2} position={[10, 2, 4]} rotation-y={-Math.PI / 2} scale={[20, 3, 1]} color="#d6d8d2" />
+        <Lightformer intensity={1.05} position={[-10, 1, -2]} rotation-y={Math.PI / 2} scale={[20, 2, 1]} color="#8aa9b8" />
       </Env>
     </>
   );
@@ -47,6 +47,7 @@ export function Ocean() {
           sh.vertexShader = sh.vertexShader
             .replace("#include <common>", `#include <common>
 uniform float uTime;
+varying float vWaveHeight;
 vec3 wave(vec2 p){
   float h=0.; vec2 g=vec2(0.);
   vec4 W[4]; W[0]=vec4(1.,.3,0.06,1.6); W[1]=vec4(-.4,1.,0.09,1.1); W[2]=vec4(.7,-.6,0.16,.55); W[3]=vec4(-.9,-.2,0.23,.35);
@@ -54,8 +55,16 @@ vec3 wave(vec2 p){
     h+=a*sin(ph); g+=a*k*cos(ph)*d; }
   return vec3(h,g);
 }`)
-            .replace("#include <beginnormal_vertex>", `vec3 wv=wave(position.xz); vec3 objectNormal=normalize(vec3(-wv.y,1.,-wv.z));`)
+            .replace("#include <beginnormal_vertex>", `vec3 wv=wave(position.xz); vec3 objectNormal=normalize(vec3(-wv.y,1.,-wv.z)); vWaveHeight=wv.x;`)
             .replace("#include <begin_vertex>", `vec3 transformed=position; transformed.y+=wv.x;`);
+          sh.fragmentShader = sh.fragmentShader
+            .replace("#include <common>", `#include <common>
+varying float vWaveHeight;`)
+            .replace("#include <color_fragment>", `#include <color_fragment>
+float crest = smoothstep(1.55, 2.65, vWaveHeight);
+diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.47, 0.67, 0.69), crest * 0.48);
+float trough = smoothstep(-2.1, -0.25, -vWaveHeight);
+diffuseColor.rgb *= mix(0.88, 1.0, trough);`);
         }} />
     </mesh>
   );
