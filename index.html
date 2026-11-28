@@ -296,6 +296,7 @@ setInterval(save,60000);addEventListener('pagehide',save);
 const cv=document.getElementById('c'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});
 R.setPixelRatio(Math.min(devicePixelRatio,1.75));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=.82;
 R.physicallyCorrectLights=true;
+const sc=new THREE.Scene();sc.background=new THREE.Color(0x82909a);sc.fog=new THREE.Fog(0x82909a,58,245);
 const cam=new THREE.PerspectiveCamera(62,1,.1,500);
 sc.add(new THREE.HemisphereLight(0xcbd8e0,0x26333b,1.2));
 const fill=new THREE.DirectionalLight(0xb7c9d4,.48);fill.position.set(-35,18,-25);sc.add(fill);
