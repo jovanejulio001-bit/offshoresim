@@ -106,6 +106,8 @@ section canvas{width:100%;height:auto;background:linear-gradient(135deg,#06121e,
  </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 // Preencha com os dados do seu projeto Supabase (Settings > API). Use apenas a chave "anon".
@@ -294,14 +296,13 @@ setInterval(save,60000);addEventListener('pagehide',save);
 const cv=document.getElementById('c'),R=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});
 R.setPixelRatio(Math.min(devicePixelRatio,1.75));R.shadowMap.enabled=true;R.shadowMap.type=THREE.PCFSoftShadowMap;R.outputEncoding=THREE.sRGBEncoding;R.toneMapping=THREE.ACESFilmicToneMapping;R.toneMappingExposure=.82;
 R.physicallyCorrectLights=true;
-const sc=new THREE.Scene();sc.background=new THREE.Color(0x8da9bd);sc.fog=new THREE.Fog(0x8da9bd,75,280);
 const cam=new THREE.PerspectiveCamera(62,1,.1,500);
-sc.add(new THREE.HemisphereLight(0xdcecff,0x34404a,1.05));
-const fill=new THREE.DirectionalLight(0x91b9d8,.28);fill.position.set(-35,18,-25);sc.add(fill);
-const sun=new THREE.DirectionalLight(0xffe3bd,1.45);sun.position.set(30,50,20);sun.castShadow=true;
+sc.add(new THREE.HemisphereLight(0xcbd8e0,0x26333b,1.2));
+const fill=new THREE.DirectionalLight(0xb7c9d4,.48);fill.position.set(-35,18,-25);sc.add(fill);
+const sun=new THREE.DirectionalLight(0xd8e0e4,.95);sun.position.set(30,50,20);sun.castShadow=true;
 sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-42,right:42,top:42,bottom:-42,far:150});sun.shadow.bias=-0.00025;sc.add(sun);
 // Sol e ambiente atmosférico para dar profundidade ao horizonte offshore.
-const sunBall=new THREE.Mesh(new THREE.SphereGeometry(7,20,16),new THREE.MeshBasicMaterial({color:0xffe1ae}));sunBall.position.set(-95,75,-150);sc.add(sunBall);
+const sunBall=new THREE.Mesh(new THREE.SphereGeometry(7,20,16),new THREE.MeshBasicMaterial({color:0xffe1ae}));sunBall.position.set(-95,75,-150);sunBall.visible=false;sc.add(sunBall);
 const quality=document.getElementById('quality');
 function setQuality(level){const q=level||'high',dpr=Math.min(devicePixelRatio,q==='high'?1.75:q==='medium'?1.35:1);R.setPixelRatio(dpr);R.shadowMap.enabled=q!=='low';sun.shadow.mapSize.setScalar(q==='high'?2048:q==='medium'?1024:512);if(sun.shadow.map){sun.shadow.map.dispose();sun.shadow.map=null}R.shadowMap.needsUpdate=true;R.setSize(innerWidth,innerHeight,false);R.toneMappingExposure=q==='high'?.82:q==='medium'?.8:.78;sc.fog.near=q==='high'?75:55;sc.fog.far=q==='high'?280:q==='medium'?230:190;}
 const initialQuality=(matchMedia('(max-width: 700px)').matches||(navigator.deviceMemory&&navigator.deviceMemory<=4))?'medium':'high';
@@ -314,24 +315,44 @@ const M=(c,e)=>new THREE.MeshStandardMaterial({color:c,roughness:.62,metalness:.
 {const es=new THREE.Scene(),eg=new THREE.SphereGeometry(50,32,16),ec=document.createElement('canvas');ec.width=4;ec.height=256;const x=ec.getContext('2d'),gr=x.createLinearGradient(0,0,0,256);gr.addColorStop(0,'#6f9fd0');gr.addColorStop(.48,'#e8eef2');gr.addColorStop(.52,'#3b5566');gr.addColorStop(1,'#1a2a35');x.fillStyle=gr;x.fillRect(0,0,4,256);
  es.add(new THREE.Mesh(eg,new THREE.MeshBasicMaterial({map:new THREE.CanvasTexture(ec),side:THREE.BackSide})));const pm=new THREE.PMREMGenerator(R);sc.environment=pm.fromScene(es,.02).texture;}
 const solids=[],C=[];
+// Imported assets: the generated platform replaces the old deck/derrick silhouette.
+const platformStructure=new THREE.Group();sc.add(platformStructure);
+const offshoreRoot=new THREE.Group();sc.add(offshoreRoot);
+const gltfLoader=new THREE.GLTFLoader();
+const workerActors=[];let workerTemplate=null;
+function installWorkerModel(actor){
+ if(!workerTemplate||actor.userData.workerModelApplied)return;
+ const old=actor.userData.proceduralRoot;if(old)old.visible=false;
+ const visual=THREE.SkeletonUtils.clone(workerTemplate);actor.add(visual);actor.userData.workerModelApplied=true;
+}
+gltfLoader.load('assets/models/plataforma_offshore.glb',g=>{
+ const model=g.scene;const bounds=new THREE.Box3().setFromObject(model);const size=bounds.getSize(new THREE.Vector3());const center=bounds.getCenter(new THREE.Vector3());
+ const fit=52/Math.max(size.x,size.y,size.z);model.scale.setScalar(fit);model.position.set(-center.x*fit,-center.y*fit,-center.z*fit);
+ model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});offshoreRoot.add(model);platformStructure.visible=false;
+},undefined,e=>console.error('Não foi possível carregar a plataforma GLB; mantém-se o cenário de reserva.',e));
+gltfLoader.load('assets/models/worker_seguranca_rigged.glb',g=>{
+ const model=g.scene;const bounds=new THREE.Box3().setFromObject(model);const size=bounds.getSize(new THREE.Vector3());const center=bounds.getCenter(new THREE.Vector3());
+ const fit=1.82/size.y;model.scale.setScalar(fit);model.position.set(-center.x*fit,-bounds.min.y*fit,-center.z*fit);
+ model.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});workerTemplate=model;workerActors.forEach(installWorkerModel);
+},undefined,e=>console.error('Não foi possível carregar o trabalhador GLB; mantém-se a personagem de reserva.',e));
 function box(w,h,d,c,x,y,z,p,solid){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c));m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;(p||sc).add(m);if(solid)solids.push(m);return m}
 function cyl(r,h,c,x,y,z,p,seg){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,h,seg||12),M(c));m.position.set(x,y,z);m.castShadow=true;(p||sc).add(m);return m}
 function col(x0,x1,z0,z1,on){C.push({x0,x1,z0,z1,on:on||(()=>1)})}
 function label(t,x,y,z){const k=document.createElement('canvas');k.width=256;k.height=64;const g=k.getContext('2d');g.fillStyle='rgba(0,0,0,.6)';g.fillRect(0,0,256,64);g.fillStyle='#ffd24a';g.font='bold 28px sans-serif';g.textAlign='center';g.fillText(t,128,42);
  const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(k),depthTest:true,transparent:true,opacity:.85}));s.position.set(x,y,z);s.scale.set(2.4,.6,1);sc.add(s)}
 // mar
-const seaG=new THREE.PlaneGeometry(500,500,80,80);seaG.rotateX(-Math.PI/2);const sea=new THREE.Mesh(seaG,new THREE.MeshStandardMaterial({color:0x0f3d58,roughness:.08,metalness:.55,transparent:true,opacity:.96}));sea.position.y=-12;sea.receiveShadow=true;sc.add(sea);
+const seaG=new THREE.PlaneGeometry(500,500,80,80);seaG.rotateX(-Math.PI/2);const sea=new THREE.Mesh(seaG,new THREE.MeshStandardMaterial({color:0x173747,roughness:.22,metalness:.32,transparent:true,opacity:.98}));sea.position.y=-12;sea.receiveShadow=true;sc.add(sea);
 // plataforma
 const gk=document.createElement('canvas');gk.width=gk.height=64;{const g=gk.getContext('2d');g.fillStyle='#1c1f22';g.fillRect(0,0,64,64);g.strokeStyle='#4a5056';g.lineWidth=3;for(let i=0;i<64;i+=8){g.beginPath();g.moveTo(i,0);g.lineTo(i,64);g.stroke();g.beginPath();g.moveTo(0,i);g.lineTo(64,i);g.stroke()}}
 const gt=new THREE.CanvasTexture(gk);gt.wrapS=gt.wrapT=THREE.RepeatWrapping;gt.repeat.set(42,42);
-const deck=box(42,1,42,0x777777,0,-.5,0);deck.material=new THREE.MeshStandardMaterial({map:gt,roughness:.9,metalness:.5});
-[-20.9,20.9].forEach(v=>{[1.1,.55].forEach(y=>{box(42,.1,.1,0xd9a800,0,y,v);box(.1,.1,42,0xd9a800,v,y,0)})});
-[[-18,-18],[18,-18],[-18,18],[18,18]].forEach(p=>cyl(1.2,16,0xc9a227,p[0],-8,p[1],0,10));
+const deck=box(42,1,42,0x777777,0,-.5,0,platformStructure);deck.material=new THREE.MeshStandardMaterial({map:gt,roughness:.9,metalness:.5});
+[-20.9,20.9].forEach(v=>{[1.1,.55].forEach(y=>{box(42,.1,.1,0xd9a800,0,y,v,platformStructure);box(.1,.1,42,0xd9a800,v,y,0,platformStructure)})});
+[[-18,-18],[18,-18],[-18,18],[18,18]].forEach(p=>cyl(1.2,16,0xc9a227,p[0],-8,p[1],platformStructure,10));
 // derrick
-[[-3.5,-3.5],[3.5,-3.5],[-3.5,3.5],[3.5,3.5]].forEach(p=>{cyl(.25,36,0x6e5b46,p[0],18,p[1]);col(p[0]-.4,p[0]+.4,p[1]-.4,p[1]+.4)});
-for(let y=4;y<36;y+=8){box(7,.2,.2,0x6e5b46,0,y,-3.5);box(7,.2,.2,0x6e5b46,0,y,3.5);box(.2,.2,7,0x6e5b46,-3.5,y,0);box(.2,.2,7,0x6e5b46,3.5,y,0)}
-box(8,1,8,0x555a60,0,36.5,0);
-box(.2,32,.2,0xaaaaaa,-.8,17,-1.6);box(.2,32,.2,0xaaaaaa,.8,17,-1.6);
+[[-3.5,-3.5],[3.5,-3.5],[-3.5,3.5],[3.5,3.5]].forEach(p=>{cyl(.25,36,0x6e5b46,p[0],18,p[1],platformStructure);col(p[0]-.4,p[0]+.4,p[1]-.4,p[1]+.4)});
+for(let y=4;y<36;y+=8){box(7,.2,.2,0x6e5b46,0,y,-3.5,platformStructure);box(7,.2,.2,0x6e5b46,0,y,3.5,platformStructure);box(.2,.2,7,0x6e5b46,-3.5,y,0,platformStructure);box(.2,.2,7,0x6e5b46,3.5,y,0,platformStructure)}
+box(8,1,8,0x555a60,0,36.5,0,platformStructure);
+box(.2,32,.2,0xaaaaaa,-.8,17,-1.6,platformStructure);box(.2,32,.2,0xaaaaaa,.8,17,-1.6,platformStructure);
 box(2.4,.8,2.4,0x333333,0,.4,0);cyl(.5,.1,0x111111,0,.85,0);label('MESA ROTATIVA',0,3.4,2);
 // Top Drive + bloco
 const td=new THREE.Group();sc.add(td);
@@ -422,7 +443,7 @@ function human(coat,hat,skin){
  const arm=s=>{const a=new THREE.Group();a.position.set(s*.31,.47,0);ch.add(a);sh(sp(.085),cm,0,0,0,a);sh(cy(.07,.06,.3),cm,0,-.15,0,a);const e=new THREE.Group();e.position.y=-.3;a.add(e);sh(cy(.06,.05,.27),cm,0,-.135,0,e);sh(sp(.065),dk,0,-.3,0,e);return[a,e]};
  const leg=s=>{const l=new THREE.Group();l.position.set(s*.1,-.08,0);hips.add(l);sh(cy(.09,.075,.42),cm,0,-.21,0,l);const k=new THREE.Group();k.position.y=-.42;l.add(k);sh(cy(.075,.06,.4),cm,0,-.2,0,k);sh(new THREE.BoxGeometry(.12,.11,.27),dk,0,-.41,.05,k);return[l,k]};
  const[aL,eL]=arm(-1),[aR,eR]=arm(1),[lL,kL]=leg(-1),[lR,kR]=leg(1);
- g.r={hips,ch,head:hd,aL,aR,eL,eR,lL,lR,kL,kR};sc.add(g);return g}
+ g.r={hips,ch,head:hd,aL,aR,eL,eR,lL,lR,kL,kR};g.userData.proceduralRoot=hips;workerActors.push(g);installWorkerModel(g);sc.add(g);return g}
 function anim(h,b,a){const r=h.r,s=Math.sin(b),c=Math.cos(b);r.lL.rotation.x=s*.7*a;r.lR.rotation.x=-s*.7*a;r.kL.rotation.x=Math.max(0,c)*.9*a;r.kR.rotation.x=Math.max(0,-c)*.9*a;
  r.aL.rotation.x=-s*.6*a-.05;r.aR.rotation.x=s*.6*a-.05;r.eL.rotation.x=r.eR.rotation.x=-.3-.3*a;r.hips.position.y=.95+Math.abs(c)*.04*a;r.ch.rotation.x=.08*a;r.ch.scale.y=1+Math.sin(S.t*1.6)*.006*(1-a)}
 function work(h,t,k,i){const r=h.r;r.aL.rotation.x=k?-1.1+Math.sin(t*9+i)*.35:Math.sin(t*1.2+i)*.05;r.aR.rotation.x=k?-1.1+Math.sin(t*9+i+2)*.35:-Math.sin(t*1.2+i)*.05;
