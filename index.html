@@ -107,6 +107,7 @@ section canvas{width:100%;height:auto;background:linear-gradient(135deg,#06121e,
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
@@ -320,11 +321,32 @@ const solids=[],C=[];
 const platformStructure=new THREE.Group();sc.add(platformStructure);
 const offshoreRoot=new THREE.Group();sc.add(offshoreRoot);
 const gltfLoader=new THREE.GLTFLoader();
+const dracoLoader=new THREE.DRACOLoader();dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.7/');gltfLoader.setDRACOLoader(dracoLoader);
 const workerActors=[];let workerTemplate=null;
 function installWorkerModel(actor){
  if(!workerTemplate||actor.userData.workerModelApplied)return;
  const old=actor.userData.proceduralRoot;if(old)old.visible=false;
- const visual=THREE.SkeletonUtils.clone(workerTemplate);actor.add(visual);actor.userData.workerModelApplied=true;
+ const visual=THREE.SkeletonUtils.clone(workerTemplate),byName={};
+ visual.traverse(o=>{if(o.isBone)byName[o.name.toLowerCase().replace(/[^a-z0-9]/g,'')]=o;});
+ const pick=(...names)=>names.map(n=>byName[n]).find(Boolean)||null;
+ const joints={pelvis:pick('pelvis','hip'),waist:pick('waist'),spine:pick('spine02','spine01'),head:pick('head'),
+  lThigh:pick('lthigh','leftthigh'),rThigh:pick('rthigh','rightthigh'),lCalf:pick('lcalf','leftcalf'),rCalf:pick('rcalf','rightcalf'),
+  lUpperArm:pick('lupperarm','leftupperarm'),rUpperArm:pick('rupperarm','rightupperarm'),lForearm:pick('lforearm','leftforearm'),rForearm:pick('rforearm','rightforearm')};
+ const rest=new Map();Object.values(joints).forEach(b=>{if(b&&!rest.has(b))rest.set(b,b.quaternion.clone());});
+ actor.add(visual);actor.userData.workerRig={visual,joints,rest,baseY:visual.position.y,euler:new THREE.Euler(),delta:new THREE.Quaternion()};actor.userData.workerModelApplied=true;
+}
+function workerPoseBone(rig,name,x=0,y=0,z=0){const b=rig.joints[name];if(!b)return;rig.euler.set(x,y,z);rig.delta.setFromEuler(rig.euler);b.quaternion.copy(rig.rest.get(b)).multiply(rig.delta)}
+function animateWorkerModel(actor,time,walk=0,working=0,phase=0){
+ const rig=actor.userData.workerRig;if(!rig)return;const w=clamp(walk,0,1),job=clamp(working,0,1),step=time*(7+4*w)+phase;
+ const swing=Math.sin(step)*w,kneeL=Math.max(0,Math.cos(step))*w*.62,kneeR=Math.max(0,-Math.cos(step))*w*.62,workWave=Math.sin(time*7+phase),idle=Math.sin(time*1.6+phase);
+ workerPoseBone(rig,'lThigh',swing*.52,0,0);workerPoseBone(rig,'rThigh',-swing*.52,0,0);
+ workerPoseBone(rig,'lCalf',kneeL,0,0);workerPoseBone(rig,'rCalf',kneeR,0,0);
+ workerPoseBone(rig,'lUpperArm',-swing*.38+job*(.08+workWave*.13)+idle*.025,0,0);
+ workerPoseBone(rig,'rUpperArm',swing*.38+job*(.08-workWave*.13)-idle*.025,0,0);
+ workerPoseBone(rig,'lForearm',-.12-job*(.22+Math.max(0,workWave)*.3),0,0);workerPoseBone(rig,'rForearm',-.12-job*(.22+Math.max(0,-workWave)*.3),0,0);
+ workerPoseBone(rig,'waist',-.018*w+idle*.008,0,0);workerPoseBone(rig,'spine',-.025*w+idle*.012,0,0);
+ workerPoseBone(rig,'head',idle*.012,Math.sin(time*.7+phase)*.035,0);
+ rig.visual.position.y=rig.baseY+Math.sin(time*2+phase)*.006*(1-w)+Math.abs(Math.sin(step))*.018*w;
 }
 gltfLoader.load('assets/models/plataforma_offshore.glb',g=>{
  const model=g.scene;const bounds=new THREE.Box3().setFromObject(model);const size=bounds.getSize(new THREE.Vector3());const center=bounds.getCenter(new THREE.Vector3());
@@ -511,7 +533,7 @@ function loop(now){
   if(!blocked(P.position.x+dx,P.position.z))P.position.x+=dx;if(!blocked(P.position.x,P.position.z+dz))P.position.z+=dz;
   const desired=Math.atan2(dx,dz);let da=((desired-P.rotation.y+Math.PI*3)%(Math.PI*2))-Math.PI;P.rotation.y+=da*Math.min(1,dt*11);bob+=dt*moveSpeed*2.25}
  const gy=gh(P.position.x,P.position.z);P.position.y+=(gy-P.position.y)*Math.min(1,dt*10);
- anim(pl,bob,clamp(moveSpeed/3.4,0,1));pl.r.ch.rotation.z+=(((sprinting&&moveSpeed>.2)?0.035:0)-pl.r.ch.rotation.z)*Math.min(1,dt*5);
+ anim(pl,bob,clamp(moveSpeed/3.4,0,1));animateWorkerModel(pl,S.t,clamp(moveSpeed/6.8,0,1));pl.r.ch.rotation.z+=(((sprinting&&moveSpeed>.2)?0.035:0)-pl.r.ch.rotation.z)*Math.min(1,dt*5);
  // porta
  doorA+=(doorT-doorA)*Math.min(1,dt*5);doorP.rotation.y=-doorA;
  // câmara com colisão
@@ -528,7 +550,8 @@ function loop(now){
  // trabalhadores
  const k=S.conn>0?1:0,t=S.t;
  rn1.position.set(1.8-k*.5,0,2.4-k*1.2);rn2.position.set(-1.8+k*.5,0,2.4-k*1.2);
- rn1.rotation.set(.12*k,Math.PI,0);rn2.rotation.set(.12*k,Math.PI,0);work(rn1,t,k,0);work(rn2,t,k,1);work(dm,t,0,2);rn1.position.y=rn2.position.y=Math.abs(Math.sin(t*(2+k*6)))*.04;
+ rn1.rotation.set(0,Math.PI,0);rn2.rotation.set(0,Math.PI,0);work(rn1,t,k,0);work(rn2,t,k,1);work(dm,t,0,2);
+ animateWorkerModel(rn1,t,0,k,0);animateWorkerModel(rn2,t,0,k,1);animateWorkerModel(dm,t,0,0,2);
  dm.position.x=k?Math.sin(t*2)*1:Math.sin(t*.5)*.3;dm.rotation.y=Math.sin(t)*.4;
  // lama
  const flow=S.fout>0?S.fout:S.fin;const vel=flow/60*1.2;
